@@ -1,0 +1,29 @@
+* Tasks
+** TEXTS
+*** TODO read maps from files
+*** TODO allow optional index of length 4
+*** TODO map verse emxedded in sentence-based text
+*** TODO search for phrase in one or more texts
+**** TODO search by "contains", grammer, subject
+*** TODO deal with texts containing a lot of junk, like PDFs
+    detect repeated lines like title/author headers
+*** TODO Build UI for navigating/comparing.
+    come up with a lot of shortcuts. 
+    use printf or format for console comparison. Line things up like this.
+	xlansaho htaoe uh h atoheun ha saos oennte
+	htnao hteno assssr,c.p mntsntogr ";htneoas"	htneoas ahhoh ehho ah o
+	aoeuhnaoseunonuh ao a o b sabs ;r u baoeu	htnasoeutnhaoesnuthaoeu
+   so that the liked text begins where it's referenced, then continues through a certain point, so you could say you only want the context of the line, or the rest of the chapter.
+*** TODO analyze text to determine how to map
+    check repeating patterns that aren't sentences. check justification
+*** TODO map websters dict
+*** TODO word hyphenation/syllabification
+    what are the difeerences? use split to get vector of syllables to count.
+*** TODO begin using wordnet to find meaning
+*** TODO summarize texts
+*** TODO Markov generator
+    this leads to an advertisement generator. use wordnet! something like 
+"you are a attribute." "Be a concept." "intensifier quality"
+*** TODO Map Shakespeare
+*** TODO add metadata to maps
+    things like: section-mapped? line/sentence-based segments.

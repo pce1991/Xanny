@@ -1,0 +1,85 @@
+* Coursera Notes
+** Language modeling
+*** The Problem
+    Finite vocab set V.\\
+    Infinite set of strings V\dagger. Includes a stop.\\
+    We have a training sample of examples sentences.\\
+    We need to learn a probability distribution p, a function which satisfies:
+    \begin{equation}
+    \sum\limits_{x\in{V\dagger}}{p(x)}=1, \, p \geq 0 \:for\:all\: x\in{V\dagger}
+    \end{equation}
+    Assign probabilities to sentences based on the liklihood of them appearing.\\ 
+    Inspired by speech recognition: "recognize speech" vs "wreck a nice beech."
+**** Naive Method
+     N training sentences.\\
+     For any sentence x_{1} ... x_{n}, c(x_{1} ... x_{n}) is the number of times the sentence is seen in the training data.\\
+     Naive estimate:
+     \begin{equation}
+     p(x_{1} ... x_{n}) =  c(x_{1} ... x_{n})/N
+     \end{equation}
+     Problem: probability of a sentence that isn't in sample is zero.
+*** Markov models
+    Sequence of random variables x_{1} ... x_{n}. Each can take on any value in a finete set V. For now assume length is fixed at n = 100\\
+    Our goal: model
+    \begin{equation}
+    P(X_{1} = x_{1} ... X_{n} = x_{n})
+    \end{equation}
+    V^{n} possibilities
+****  First-order Markov processes
+      Use chain rule:
+      \begin{equation}
+      P(X_{1} = x_{1} ... X_{n} = x_{n}) = P(X_{1} = x_{1})\prod\limits_{i = 2}^n{P(X_{i} = x_{i} \mid X_{1} = x_{1} ... X_{i-1} = x_{i-1})}
+      \end{equation}
+      This is an exact equality.
+      First-order Markov assumption assumes for any i \in {2...n} for any x_{1}...x_{i}:
+      \begin{equation}
+      P(X_{i} = x_{i} \mid X_{1} = x_{1} ... X_{i-1} = x_{i-1}) = P(X_{i} = x_{i} \mid X_{i-1} = x_{i-1})
+      \end{equation}
+      From this we derive:
+      \documentclass{article}
+      \usepackage{amsmath}
+      \begin{document}
+      \begin{gather}
+      P(X_{1} = x_{1} ... X_{n} = x_{n}) \\
+      = P(X_{1} = x_{1})\prod\limits_{i = 2}^n{P(X_{i} = x_{i} \mid X_{1} = x_{1} ... X_{i-1} = x_{i-1})} \\
+      = P(X_{1} = x_{1})\prod\limits_{i=2}^nP(X_{i} = x_{i} \mid X_{i-1} = x_{i-1})
+      \end{gather}
+      This tells us the probability of any X_{i} = x_{i} is determined just by the previous state, i.e it's independent of all previous random variables.
+**** Second-order Markov processes
+     The probability of P(X_{i} = x_{i}) is determined by the two previous variables.
+     This can be extended to third, fourth, etcetera.
+     We define a distribution where the length of sentence is also a random variable.
+     We do this by assuming that X_{n} = STOP
+     We assume that x_{0} = x_{-1} = * where * is a "start" symbol.
+*** Trigrams
+    A trigram consists of: \\
+    1. a finite state V \\
+    2. a parameter q(w|u,v), for each trigram u,w,v such that: 
+    \begin{equation}
+    u,v \in V \bigcup \{*\} \; and  \; w \in V \bigcup \{STOP\}
+    \end{equation}
+    (what do the commas represent again?) \\
+    Useful in many situations, but there are many examples of why it's a naive assumption.
+    \\
+**** Q1
+     Say we have a language model with ={the, dog, runs}, and the following parameters: \\
+     q(the|*,*)=1 \\
+     q(dog|*,the)=0.5\\
+     q(STOP|*,the)=0.5\\
+     q(runs|the,dog)=0.5\\
+     q(STOP|the,dog)=0.5\\
+     q(STOP|dog,runs)=1 \\
+     How many sentences have non-zero probability under this model?\\
+**** A1
+     3
+*** Estimation
+****  Maximum liklihood estimate
+      Trigram/bigram\\
+      The weakness is that there are a huge number of parameters: N^{3}
+*** Evaluation
+** Parameter Estimation
+** Tagging problem and hidden Markov Models
+* Coursera 2 Notes
+* Projects
+** break up sentences containing no spaces
+** spelling correction

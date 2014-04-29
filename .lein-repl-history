@@ -1,0 +1,6 @@
+exit
+(use 'xanny.texts)
+(def b (map-bible))
+(def m (map-sentences (map-text "text-files/PROSE/Moby-Dick.txt" #"ETYMOLOGY." #"CHAPTER.*|Epilogue" empty? not-empty false)))
+m
+exit

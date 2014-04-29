@@ -1,0 +1,181 @@
+(ns xanny.texts
+  (:use [clojure.java.io]
+        [clojure.string]
+        [xanny.nlp]))
+;translate my scheme code here mostly. might need to use some nlp stuff. 
+
+;==========================================================================================
+;PATHS
+;==========================================================================================
+
+;allow the user to navigate this. 
+;so this lists everything. I'd like it to only show folders and then they can be further 
+;explored. or it should only print out a few in chunks. 
+;clean up the printing. it'd be nice to only show the file name. 
+(defn show-paths []
+  (loop [directory (file "text-files/")
+         files (file-seq directory)
+         count 0]
+    (println count ": " (first files))
+    (if (not (empty? (rest files)))
+      (recur directory (rest files) (inc count)))))
+
+;==========================================================================================
+;WRITING to files
+;==========================================================================================
+
+
+;==========================================================================================
+;READING from files
+;==========================================================================================
+
+;change this so it takes a general function and applies it to each item.
+;write it to count line numbers as well. 
+(defn print-text [text-path] 
+  (with-open [rdr (reader text-path)]
+    (doseq [line (line-seq rdr)]
+      (println line))))
+
+(defn line-count [text-path]
+  (with-open [rdr (reader text-path)]
+    (let [seq (line-seq rdr)]
+      (count seq))))
+
+;recursive version of print-text
+(defn print-text-recursive [text]
+  (with-open [rdr (reader text)]
+    (loop [seq (line-seq rdr)]
+      (let [line (first seq)]
+        (println line)
+        (if (not (nil? line))
+          (recur (rest seq)))))))
+
+;write a recursive loop that'll go through each line, apply a function to it, and put it in map
+;so I can't use a regular doseq loop 'cause I can't bang on any variables. should I just use
+;recur with in the context of a cond statement triggering different recursions based on the
+;predicates you feed the function. 
+;part, section, segment? I need something more general
+;write a general version that takes in several functions, and then write specific ones that
+;feed in the appropiate functions. 
+;lump, chunk, wedge? 
+;make it so part? etcetera can be multiple functions, use assoc to put something in table since
+;order doesn't matter, but it should be sorted by key. do i use apply? 
+(defn map-text [text-path part? section? segment?]
+  "returns a map of the text with keywords represent part, section, and segment, with indexes starting at 1."
+  (with-open [rdr (reader text-path)]
+    (loop [seq (line-seq rdr)
+           map {}
+           part 0
+           section 0
+           segment 0]
+      (let [line (first seq)]
+        (println line)
+        (cond (nil? line) map ;this is termination case. 
+              (part? line) 
+              (recur (rest seq)
+                     (assoc map (list (inc part) section segment) line)
+                     (inc part) 0 0)
+              (section? line)
+              (recur (rest seq)
+                     (assoc map (list part (inc section) segment) line)
+                     part (inc section) 0)
+              (segment? line)
+              (recur (rest seq)
+                     (assoc map (list part section (inc segment)) line)
+                     part section (inc segment))
+              :else (recur (rest seq) map part section segment))))))
+            
+;to sort this I must make a function to extract the numbers using (name :x), then parsing out
+;the numbers from -. then I order it fisrt by part, if that's a tie by section, then by segment. 
+;or i could just use get, which should work with lists instead of keyword. 
+
+;==========================================================================================
+;EDITING AND FORMATTING TEXTS
+;==========================================================================================
+;this will be most useful for texts converted from PDFs I imagine. 
+
+;==========================================================================================
+;MAPPING
+;==========================================================================================
+
+
+;=============================================
+;POETRY
+;=============================================
+;both markers are a vector of variables signifying what's to be destructured, so if I'm looking
+;for "the book of x" then I'll destructure it to get "the book of" and if that's a match then
+;it'll increase the part count. use tokenize on the string, but that might be inefficient? 
+;the trouble with this approah is I also need to say what they're supposed to be equal to. 
+;so maybe part-marker is two vectors instead of 1, or even better, a map! 
+;section-marker might be a problem, because for some poems the marker is a function like 
+;indented? 
+;markers should be given as vectors to match so ["THE" "BOOK" "OF" _] need to use rest arguments
+;so that something like "THE BOOK OF X AND Y" will match. 
+;i need the markers to be functions or vectors, maybe though matching could be general enough
+;though. like for PL, if its [BOOK _] then its a part, if there's a blank line then you
+;increment section, but it shouldn't be mapped... hmmm. and then just map every line. 
+;(defn map-poetry [text-path part-marker section-marker segment-match] ;or seg-proc? 
+ ; (map-text text-path
+                                        ;how to make the number of variables equal the length of the match? 
+  ;          (fn [line] (= (tokenize part-marker)
+    ;                      (subvec (tokenize line) 0 (count part-marker))))
+   ;                                     ;it'll be gack but I need more cases in here. but I should be able to specify which
+                                        ;ones I want applied. 
+     ;       (fn [line] (= (tokenize section-marker) 
+      ;                    (subvec (tokenize line) 0 (count part-marker))))
+                                        ;as long as its not an emtpy line it should be mapped. 
+       ;     (fn [line] (not (blankline? line)))))
+;=============================================
+;PROSE
+;=============================================
+
+
+;=============================================
+;BIBLE
+;=============================================
+;this isn't going to be very general, it'll just work with the KJV copy that I have, but its so
+;nicely formatted I don't care. 
+;use all caps check to check the chapter. use isAllUpper
+(defn map-bible [text-path]
+  (map-text text-path
+            (fn [line] (bible-book? line))
+            (fn [line] (or (chapter? line) (psalm? line)))
+            (fn [line] (not (blankline? line)))))
+
+
+(def bible-books ["ECCLESIASTES" "SONG OF SOLOMON" "SOLOMON" "HOSEA" "JOEL" "AMOS" "OBADIAH" "JONAH" "MICAH" "NAHUM" "HABAKKUK" "ZEPHANIAH" "HAGGAI" "ZECHARIAH" "MALACHI" "EZRA"  "SONG OF SOLOMON" "THE PROVERBS"  "THE LAMENTATIONS OF" "LAMENTATIONS" "THE GOSPEL ACCORDING TO" "GOSPEL" "THE ACTS OF THE APOSTLES" "ACTS" "EPISTLE OF" "EPISTLE" "EPISTLE GENERAL OF" "THE REVELATION OF" "REVELATION" "GENESIS" "EXODUS" "NUMBERS" "LEVITICUS" "DEUTERONOMY" "THE BOOK OF" "SAMUEL" "THE KINGS" "KINGS" "CHRONICLES"])
+
+;this searches for indivudal words and not phrases like "SONG OF SOLOMON." that's a problem? 
+(defn bible-book? [str]
+  "reurns true or nil"
+  (if (not (empty? (filter string? (for [book bible-books] 
+                                     ;add an or here that'll check sentences rather than words
+                           (some #{book} (tokenize str))))))
+    true
+    false))
+
+(defn chapter? [str]
+  (match (tokenize str)
+         ["CHAPTER" _] true
+         :else false))
+
+(defn psalm? [str]
+  (match (tokenize str)
+         ["PSALM" _] true
+         :else false))
+ 
+;==========================================================================================
+;UTILITIES
+;==========================================================================================
+
+(defn string-seq [str]
+  "returns a sequence of all the characters in the string."
+  (seq (char-array str)))
+
+(defn blankline? [str]
+  (if (= (count str) 1)
+    (= (first (string-seq str)) \return)
+    false))
+
+(defn uppercase? [str]
+  (= str (upper-case str)))

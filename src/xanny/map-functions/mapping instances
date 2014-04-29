@@ -1,0 +1,7 @@
+(def pl (map-text "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" indented? (fn [line] (and (not-empty line) (not (uppercase? line)))) false))
+
+(def pr (map-text"text-files/POETRY/paradise-regained.txt" #"  THE.* BOOK" indented? not-empty true))
+
+(def m (map-sentences (map-text "text-files/PROSE/Moby-Dick.txt" #"ETYMOLOGY." #"CHAPTER.*|Epilogue" empty? not-empty false)))
+(into (sorted-map-by compare-index) (zipmap (map dec-sec (keys m)) (vals m)))
+;ETYMOLOGY should be a different volume though

@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>NLP-Notes</title>
+<!-- 2014-04-23 Wed 21:15 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Patrick Collin Eye" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+<script type="text/javascript" src="http://orgmode.org/mathjax/MathJax.js"></script>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+    MathJax.Hub.Config({
+        // Only one of the two following lines, depending on user settings
+        // First allows browser-native MathML display, second forces HTML/CSS
+        //  config: ["MMLorHTML.js"], jax: ["input/TeX"],
+            jax: ["input/TeX", "output/HTML-CSS"],
+        extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js",
+                     "TeX/noUndefined.js"],
+        tex2jax: {
+            inlineMath: [ ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"], ["\\begin{displaymath}","\\end{displaymath}"] ],
+            skipTags: ["script","noscript","style","textarea","pre","code"],
+            ignoreClass: "tex2jax_ignore",
+            processEscapes: false,
+            processEnvironments: true,
+            preview: "TeX"
+        },
+        showProcessingMessages: true,
+        displayAlign: "center",
+        displayIndent: "2em",
+
+        "HTML-CSS": {
+             scale: 100,
+             availableFonts: ["STIX","TeX"],
+             preferredFont: "TeX",
+             webFont: "TeX",
+             imageFont: "TeX",
+             showMathMenu: true,
+        },
+        MMLorHTML: {
+             prefer: {
+                 MSIE:    "MML",
+                 Firefox: "MML",
+                 Opera:   "HTML",
+                 other:   "HTML"
+             }
+        }
+    });
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">NLP-Notes</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. Coursera Notes</a>
+<ul>
+<li><a href="#sec-1-1">1.1. Language modeling</a>
+<ul>
+<li><a href="#sec-1-1-1">1.1.1. The Problem</a></li>
+<li><a href="#sec-1-1-2">1.1.2. Markov models</a></li>
+<li><a href="#sec-1-1-3">1.1.3. Trigrams</a></li>
+<li><a href="#sec-1-1-4">1.1.4. Estimation</a></li>
+<li><a href="#sec-1-1-5">1.1.5. Evaluation</a></li>
+</ul>
+</li>
+<li><a href="#sec-1-2">1.2. Parameter Estimation</a></li>
+<li><a href="#sec-1-3">1.3. Tagging problem and hidden Markov Models</a></li>
+</ul>
+</li>
+<li><a href="#sec-2">2. Coursera 2 Notes</a></li>
+<li><a href="#sec-3">3. Projects</a>
+<ul>
+<li><a href="#sec-3-1">3.1. break up sentences containing no spaces</a></li>
+<li><a href="#sec-3-2">3.2. spelling correction</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Coursera Notes</h2>
+<div class="outline-text-2" id="text-1">
+</div><div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> Language modeling</h3>
+<div class="outline-text-3" id="text-1-1">
+</div><div id="outline-container-sec-1-1-1" class="outline-4">
+<h4 id="sec-1-1-1"><span class="section-number-4">1.1.1</span> The Problem</h4>
+<div class="outline-text-4" id="text-1-1-1">
+<p>
+Finite vocab set V.<br  />
+    Infinite set of strings V&dagger;. Includes a stop.<br  />
+    We have a training sample of examples sentences.<br  />
+    We need to learn a probability distribution p, a function which satisfies:
+</p>
+\begin{equation}
+\sum\limits_{x\in{V\dagger}}{p(x)}=1, \, p \geq 0 \:for\:all\: x\in{V\dagger}
+\end{equation}
+<p>
+Assign probabilities to sentences based on the liklihood of them appearing.<br  />
+    Inspired by speech recognition: "recognize speech" vs "wreck a nice beech."
+</p>
+</div>
+<ol class="org-ol"><li>Naive Method<br  /><div class="outline-text-5" id="text-1-1-1-1">
+<p>
+N training sentences.<br  />
+     For any sentence x<sub>1</sub> &#x2026; x<sub>n</sub>, c(x<sub>1</sub> &#x2026; x<sub>n</sub>) is the number of times the sentence is seen in the training data.<br  />
+     Naive estimate:
+</p>
+\begin{equation}
+p(x_{1} ... x_{n}) =  c(x_{1} ... x_{n})/N
+\end{equation}
+<p>
+Problem: probability of a sentence that isn't in sample is zero.
+</p>
+</div>
+</li></ol>
+</div>
+
+<div id="outline-container-sec-1-1-2" class="outline-4">
+<h4 id="sec-1-1-2"><span class="section-number-4">1.1.2</span> Markov models</h4>
+<div class="outline-text-4" id="text-1-1-2">
+<p>
+Sequence of random variables x<sub>1</sub> &#x2026; x<sub>n</sub>. Each can take on any value in a finete set V. For now assume length is fixed at n = 100<br  />
+    Our goal: model
+</p>
+\begin{equation}
+P(X_{1} = x_{1} ... X_{n} = x_{n})
+\end{equation}
+<p>
+V<sup>n</sup> possibilities
+</p>
+</div>
+<ol class="org-ol"><li>First-order Markov processes<br  /><div class="outline-text-5" id="text-1-1-2-1">
+<p>
+Use chain rule:
+</p>
+\begin{equation}
+P(X_{1} = x_{1} ... X_{n} = x_{n}) = P(X_{1} = x_{1})\prod\limits_{i = 2}^n{P(X_{i} = x_{i} \mid X_{1} = x_{1} ... X_{i-1} = x_{i-1})}
+\end{equation}
+<p>
+This is an exact equality.
+First-order Markov assumption assumes for any i &isin; {2&#x2026;n} for any x<sub>1</sub>&#x2026;x<sub>i</sub>:
+</p>
+\begin{equation}
+P(X_{i} = x_{i} \mid X_{1} = x_{1} ... X_{i-1} = x_{i-1}) = P(X_{i} = x_{i} \mid X_{i-1} = x_{i-1})
+\end{equation}
+<p>
+From this we derive:
+\documentclass{article}
+\usepackage{amsmath}
+</p>
+<p>
+\begin{document}
+</p>
+\begin{gather}
+P(X_{1} = x_{1} ... X_{n} = x_{n}) \\
+= P(X_{1} = x_{1})\prod\limits_{i = 2}^n{P(X_{i} = x_{i} \mid X_{1} = x_{1} ... X_{i-1} = x_{i-1})} \\
+= P(X_{1} = x_{1})\prod\limits_{i=2}^nP(X_{i} = x_{i} \mid X_{i-1} = x_{i-1})
+\end{gather}
+<p>
+This tells us the probability of any X<sub>i</sub> = x<sub>i</sub> is determined just by the previous state, i.e it's independent of all previous random variables.
+</p>
+</div>
+</li>
+
+<li>Second-order Markov processes<br  /><div class="outline-text-5" id="text-1-1-2-2">
+<p>
+The probability of P(X<sub>i</sub> = x<sub>i</sub>) is determined by the two previous variables.
+This can be extended to third, fourth, etcetera.
+We define a distribution where the length of sentence is also a random variable.
+We do this by assuming that X<sub>n</sub> = STOP
+We assume that x<sub>0</sub> = x<sub>-1</sub> = * where * is a "start" symbol.
+</p>
+</div>
+</li></ol>
+</div>
+
+<div id="outline-container-sec-1-1-3" class="outline-4">
+<h4 id="sec-1-1-3"><span class="section-number-4">1.1.3</span> Trigrams</h4>
+<div class="outline-text-4" id="text-1-1-3">
+<p>
+A trigram consists of: <br  />
+</p>
+<ol class="org-ol">
+<li>a finite state V <br  />
+</li>
+<li>a parameter q(w|u,v), for each trigram u,w,v such that: 
+</li>
+</ol>
+\begin{equation}
+u,v \in V \bigcup \{*\} \; and  \; w \in V \bigcup \{STOP\}
+\end{equation}
+<p>
+(what do the commas represent again?) <br  />
+    Useful in many situations, but there are many examples of why it's a naive assumption.
+\\
+</p>
+</div>
+<ol class="org-ol"><li>Q1<br  /><div class="outline-text-5" id="text-1-1-3-1">
+<p>
+Say we have a language model with ={the, dog, runs}, and the following parameters: <br  />
+     q(the|*,*)=1 <br  />
+     q(dog|*,the)=0.5<br  />
+     q(STOP|*,the)=0.5<br  />
+     q(runs|the,dog)=0.5<br  />
+     q(STOP|the,dog)=0.5<br  />
+     q(STOP|dog,runs)=1 <br  />
+     How many sentences have non-zero probability under this model?<br  />
+</p>
+</div>
+</li>
+
+<li>A1<br  /><div class="outline-text-5" id="text-1-1-3-2">
+<p>
+3
+</p>
+</div>
+</li></ol>
+</div>
+
+<div id="outline-container-sec-1-1-4" class="outline-4">
+<h4 id="sec-1-1-4"><span class="section-number-4">1.1.4</span> Estimation</h4>
+<div class="outline-text-4" id="text-1-1-4">
+</div><ol class="org-ol"><li>Maximum liklihood estimate<br  /><div class="outline-text-5" id="text-1-1-4-1">
+<p>
+Trigram/bigram<br  />
+      The weakness is that there are a huge number of parameters: N<sup>3</sup>
+</p>
+</div>
+</li></ol>
+</div>
+
+<div id="outline-container-sec-1-1-5" class="outline-4">
+<h4 id="sec-1-1-5"><span class="section-number-4">1.1.5</span> Evaluation</h4>
+</div>
+</div>
+
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> Parameter Estimation</h3>
+</div>
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> Tagging problem and hidden Markov Models</h3>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Coursera 2 Notes</h2>
+</div>
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Projects</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> break up sentences containing no spaces</h3>
+</div>
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> spelling correction</h3>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Patrick Collin Eye</p>
+<p class="date">Created: 2014-04-23 Wed 21:15</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode 8.2.5h)</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

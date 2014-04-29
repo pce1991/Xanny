@@ -1,0 +1,15 @@
+* NOTES
+** Research
+*** Language generation
+*** Information extraction
+    what are the key categories to extract out of a text? varies based
+    on subject.
+** Mechanics
+*** Dialogue
+    this is a stretch, but I'd like some interaction with
+    xanny. There's an excuse for her inability to understand you
+    sometimes.
+** Vaguery
+*** mapping texts
+    should I give this up and find an easier way to use text data. look into xml, 
+but it isn't as ubiquitous.
