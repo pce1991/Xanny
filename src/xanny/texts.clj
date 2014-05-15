@@ -16,9 +16,7 @@
 ;==========================================================================================
 
 ;allow the user to navigate this. 
-;so this lists everything. I'd like it to only show folders and then they can be further 
-;explored. or it should only print out a few in chunks. 
-;clean up the printing. it'd be nice to only show the file name. 
+;adapt this to show all the folders too.
 (defn show-paths []
   (loop [directory (io/file "text-files/")
          files (file-seq directory)
@@ -40,6 +38,12 @@
     (doseq [entry map]
       (.write wrt (with-out-str (pr entry))))))
 
+;write list to file, add new line after each entry
+(defn write-text [path seq]
+  (with-open [wrt (io/writer path :replace true)]
+    (doseq [entry seq]
+      (.write wrt entry))))
+
 ;==========================================================================================
 ;==========================================================================================
 ;EDITING AND FORMATTING TEXTS
@@ -47,45 +51,78 @@
 ;==========================================================================================
 ;this will be most useful for texts converted from PDFs I imagine. will also be used to
 ;remove gutenberg stamps, licenses, and other crap. 
+;removes all gutenberg shit!
 
-;remove all gutenberg shit!
+(defn trim-blanks [text-seq] 
+  "removes blankline from the front so title is asways first"
+  (loop [seq text-seq]
+    (if (empty? (first seq))
+      (recur (rest seq))
+      seq)))
+
+;these give null pointers when the start or end isnt found. fix it
+
+;these are reversing it if there are no start and end markers!
 
 ;usually begins after "X by Y", but sometimes there's a disclaimer. returns a lazy-seq
 (defn trim-front [text-path start]
   (with-open [rdr (io/reader text-path)]
     (loop [seq (line-seq rdr)]
-      (if (re-matches start (first seq))
-        (into [] (rest seq)) ;vector cause stream closes
-        (recur (rest seq))))))
+      (if (nil? start)
+        (into [] (trim-blanks seq))
+        (if (re-matches start (first seq))
+            (into [] (rest seq)) ;vector cause stream closes
+            (recur (rest seq)))))))
 
 (defn trim-back [text-seq end]
   (loop [seq (reverse text-seq)]
-    (if (re-matches end (first seq))
-      (reverse (rest seq)) ;toss the ending marker.
-      (recur (rest seq)))))
+    (if (nil? end)
+      (into [] (reverse seq)) 
+      (if (re-matches end (first seq))
+        (reverse (rest seq)) ;toss the ending marker.
+        (recur (rest seq))))))
 
 
-
-;count consecutive line marks and remove them. verify this works
+;count consecutive line breaks and remove them. verify this works.
+;isnt reducing everything to single line breaks. cant handle uneven number of lines.
 (defn consecutive-lines [text-seq]
   (loop [seq text-seq
          new-seq ()]
-    (cond (empty? seq) (reverse new-seq)
-          (and (empty? (first seq)) 
+    (cond (empty? seq) 
+          (reverse new-seq)
+          (and (empty? (first seq))  ;instead of this, just trim until it the next item isnt a linebreak.
                (empty? (second seq)))
           (recur (rest (rest seq))
                  (conj new-seq (first seq)))
           :else (recur (rest seq)
                        (conj new-seq (first seq))))))
 
+;cut single linebreaks out of text like finnegan's wake which has them between every two lines.
+;after all lonely lines are removed, it can be run through consecutive-lines
+
+(defn lonely-lines [text-seq]
+  (loop [seq text-seq
+         new-seq ()]
+    (cond (empty? seq)
+          (reverse new-seq)
+          (and (empty? (first seq)) ;if single blankline, kill it.
+               (not-empty (second seq)))
+          (recur (rest seq) new-seq) 
+          :else (recur (rest seq) (conj new-seq (first seq))))))
+
 (defn clear-text [text-path start end]
   (consecutive-lines (trim-back (trim-front text-path start) end)))
+
+
+;clear out the top title and page number from a PDF text
 
 ;create new file out of a segment of a file. give a start and a stop, either as words, lines
 ;this is the next thing to do so I can trust the maps I have.
 
 ;find author's name and title, use this to mark start. in shae these mark
 ;volumes, but also the beginning 
+
+
 
 ;==========================================================================================
 ;==========================================================================================
@@ -132,13 +169,17 @@ the str matches the pattern, or it returns function applied to str."
 ;if prt was 0 indexed. I do want that for parts, unless they have a name, and section titles are 
 ;mapped at 0. add map-part-marker? and figure out how to have a part be a volume marker to.
 ;add a smaller index than segment which is word.
+
+;WHERE IS THE NULL POINTER IN MAP-BIBLE HAPPENING!?!?!?!?
+;add a title and author entry for the first two lines 
 (defn map-text 
   [text-path volume? part? section? segment? map-section-marker? ;either t or f. use 1 or 0 instd
    & {:keys [start end] :or {start #"Produced by.*"
                               end #"End of[the]? Project Gutenberg.*"}}] 
-  "returns a map of the text with keywords represent part, section, and segment, 
-with indexes starting at 1."
-  (loop [seq (clear-text text-path start end)
+  "returns a map of the text with keywords representing part, section, and segment.s"
+ 
+                                        ;(println (empty? (clear-text text-path start end)))
+  (loop [seq (clear-text text-path start end) ;the problem is start and end aren't getting new val
          map {}
          volume 0
          part 0
@@ -237,7 +278,6 @@ with indexes starting at 1."
         (zipmap (map dec-sec (keys m))
                 (vals m))))
 
-
 ;what to do about contractions? get rid of other symbols. use iterate?
 ;TOO slow. use split? this is GACK. also inconsistent. 
 ;use map instead of text-path, just grab vals
@@ -262,7 +302,9 @@ with indexes starting at 1."
                        key))))))
                                         ;this ensures duplicate entries have the whole count
 
-;sence I'm using map I should keep track of where the words occur.
+;sence I'm using map I should keep track of where the words occur. so each word is a key tied to a map of count
+;and a :index key containg a vector of all occurences indexed. 
+;handle lemmatization
 (defn make-corpora2 [map]
   ()
 )
@@ -278,14 +320,10 @@ with indexes starting at 1."
 ;==========================================================================================
 ;==========================================================================================
 
-;=============================================
-;BIBLE
-;=============================================
-
 (def bible-books ["ECCLESIASTES" "SOLOMON" "HOSEA" "JOEL" "AMOS" "OBADIAH" "JONAH" "MICAH" "NAHUM" "HABAKKUK" "ZEPHANIAH" "HAGGAI" "ZECHARIAH" "MALACHI" "EZRA"  "PROVERBS"  "THE LAMENTATIONS OF" "LAMENTATIONS" "THE GOSPEL ACCORDING TO" "GOSPEL" "THE ACTS OF THE APOSTLES" "ACTS" "EPISTLE OF" "EPISTLE" "EPISTLE GENERAL OF" "THE REVELATION OF" "REVELATION" "GENESIS" "EXODUS" "NUMBERS" "LEVITICUS" "DEUTERONOMY" "MOSES" "THE BOOK OF" "BOOK" "PSALMS" "SAMUEL" "THE KINGS" "KINGS" "CHRONICLES"])
 
 
-;this searches for indivudal words and not phrases like "SONG OF SOLOMON." is that a problem? 
+;this searches for indivudal words and not phrases like "SONG OF SOLOMON." 
 (defn bible-book? [str]
   (if (not (empty? (filter string? 
                           (for [word (tokenize str)]
@@ -293,15 +331,16 @@ with indexes starting at 1."
     true
     false))
 
+;null pointer??? clean-line should work now
 ;OT is vol 0, NT is 1
 (defn map-bible []
   (map-text "text-files/the-holy-bible/KJV-text-only.txt"
-            #"THE NEW TESTAMENT OF OUR LORD AND SAVIOUR JESUS CHRIST"
+           #"THE NEW TESTAMENT OF OUR LORD AND SAVIOUR JESUS CHRIST"
             (fn [line] ;if it isn't allcaps then it isn't a book title. 
               (if (uppercase? line) (bible-book? line) false)) 
-            #"[CHAPTER PSALM].*"  
+            #"[CHAPTER PSALM].*"
             (fn [line] (and (not (empty? line)) (not (newline? line))))
-            true))
+            true :start nil :end nil))
 
 
 (defn map-dictionary []

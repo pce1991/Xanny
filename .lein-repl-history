@@ -1,6 +1,500 @@
+(sec-seq bible 1 1 3)
+(seg bible 1 0 00
+)
+(seg bible 1 1 )
+(seg bible 1 1 0)
+(sec bible 1 3)
+(seg bible 1 1 10)
+(seg bible 1 3 10)
+(seg bible 1 3 20)
+(seg bible 1 3 30)
+(seg bible 1 3 25)
+(seg bible 1 3 0)
+(sec bible 1 4)
+(sec bible 1 5)
+(sec bible 1 6)
+(sec bible 1 7)
+(sec bible 1 8)
+(sec bible 1 9)
+(seg bible 1 3 0)
+(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
+(seg bible 1 3 0)
+(sec-seq bible 1 3)
+(sec bible 1 3)
+(sec bible 3 3)
+(sec bible 4 3)
+(sec bible 5 3)
+(sec bible 1 3)
+(seg bible 1 33 33)
+(seg bible 1 33 32)
+(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
+(seg bible 1 33 32)
+(seg bible 1 33 33)
+(seg bible 1 33 32)
+(seg bible 2 33 32)
+(sec bible 2 33)
+(sec bible 33 33)
+(sec bible 1 33)
+(seg bible 1 33 32)
+(sec bible 1 33)
+(seg bible 1 33 31)
+(seg bible 1 33 30)
+(seg bible 1 33 32)
+(seg bible 1 34 1)
+(seg bible 1 34 0)
+(seg bible 1 34 1)
+(seg bible 1 34 2)
+(seg bible 1 33 20)
+(seg bible 1 33 21)
+(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
 exit
-(use 'xanny.texts)
-(def b (map-bible))
-(def m (map-sentences (map-text "text-files/PROSE/Moby-Dick.txt" #"ETYMOLOGY." #"CHAPTER.*|Epilogue" empty? not-empty false)))
-m
+(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
+(seg bible 1 33 21)
+(prt bible 1)
+(sec-count bible 1)
+(seg-count bible 1 1)
+(sec bible 1 1)
+(sec-seq bible 1 1 2)
+(sec-seq bible 1 1 3)
+(sec bible 1 900)
+(empty? '())
 exit
+(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
+(prt bible 1)
+(rand-seg bible 1 1)
+(prt bible 900)
+exit
+(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
+(prt-count bible)
+(rand-seg bible 1 1)
+exit
+(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
+(rand-seg bible)
+exit
+(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
+(rand-seg bible)
+(rand-seg bible 1)
+(rand-int 0)
+(rand-int 1)
+(rand-int 2)
+exit
+(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
+(rand-seg bible)
+(dotimes [i 10] (rand-seg bible))
+(dotimes [i 10] (println (rand-seg bible)))
+(match)
+(use 'clojure.match)
+(use 'clojure.string)
+(use 'clojure.core.match)
+(let [x '(1 2)]
+  (match [x]
+    [([1] :seq)] :a0
+    [([1 & r] :seq)] [:a1 r]
+    :else nil))
+(let [x '(1 2)]
+  (match [x]
+    [([1] :seq)] :a0
+    [([1 & r] :seq)] [:a1 r]
+    :else nil))
+(tokenize "    hi")
+(char-array "hi")
+(seq (char-array "hi"))
+(seq (char-array "   hi"))
+(seq (char-array "me time with a lance; but the furious monster at length"))
+rushed on the boat; himself and comrades only being preserved by leaping
+into the water when they saw the onset was inevitable." --MISSIONARY
+JOURNAL OF TYERMAN AND BENNETT.
+"Nantucket itself," said Mr. Webster, "is a very striking and peculiar
+portion of the National interest. There is a population of eight or nine
+thousand persons living here in the sea, adding largely every year
+to the National wealth by the boldest and most persevering industry."
+--REPORT OF DANIEL WEBSTER'S SPEECH IN THE U. S. SENATE, ON THE
+APPLICATION FOR THE ERECTION OF A BREAKWATER AT NANTUCKET. 1828.
+"The whale fell directly over him, and probably killed him in a moment."
+--"THE WHALE AND HIS CAPTORS, OR THE WHALEMAN'S ADVENTURES AND THE
+WHALE'S BIOGRAPHY, GATHERED ON THE HOMEWARD CRUISE OF THE COMMODORE
+PREBLE." BY REV. HENRY T. CHEEVER.
+"If you make the least damn bit of noise," replied Samuel, "I will send
+you to hell." --LIFE OF SAMUEL COMSTOCK (THE MUTINEER), BY HIS BROTHER,
+WILLIAM COMSTOCK. ANOTHER VERSION OF THE WHALE-SHIP GLOBE NARRATIVE.
+"The voyages of the Dutch and English to the Northern Ocean, in order,
+if possible, to discover a passage through it to India, though they
+failed of their main object, laid-open thaunts of the whale."
+--MCCULLOCH'S COMMERCIAL DICTIONARY.
+1
+)))
+)
+(tokenize "")
+(seq "hi")
+(vector "hi")
+(into [] (seq "HI"))
+["THE" _ "BOOK"]
+(map seq ["THE" _ "BOOK"])
+(map seq ["THE" '_ "BOOK"])
+(map seq ["THE" "_" "BOOK"])
+(def a ["THE" _ "BOOK"])
+(match
+)
+(match ["THE" "FIRST" "BOOK"] ["THE" _ "BOOK"])
+(match ["THE" "FIRST" "BOOK"] ["THE" _ "BOOK"] true)
+(match ["THE" "FIRST" "BOOK"] (map seq ["THE" _ "BOOK"]) true :else false)
+(match ["THE" "FIRST" "BOOK"] [(map seq ["THE" _ "BOOK"])] true :else false)
+(match [(map seq ["THE" "FIRST" "BOOK"])] [(map seq ["THE" _ "BOOK"])] true :else false)
+(defn a [x] (if x (apply x [1 2 3])))
+a
+(a +)
+(subvec '(1 2 3) 0 1)
+(subvec [1 2 3] 0 1)
+(subvec [1 2 3 4 5] 0 4)
+(defn indented? [str]
+  (= (subvec (into [] (seq str)) 0 4) 
+     (int [] (seq "    "))))
+(seg "    ")
+(seq "    ")
+(into [
+]3
+4
+)
+(into [] (seq "Hi"))
+(defn indented? [str]
+  (if (> (count str) 4)
+    (= (subvec (into [] (seq str)) 0 4) 
+       (into [] (seq "    ")))
+    false))
+(indented? "    ")
+(indented? "     ")
+(indented? "    a")
+(indented? "    ")
+(defn marker? [str & [pattern feature]]
+  "accepts a string and pattern, returning true if the str matches the pattern.
+Multiple patterns can be given, and can be as complex as needed: might require or patterns,
+or guarded ones. " 
+  (if pattern
+    (match/match (tokenize str) pattern true
+                 :else false)
+    (if feature
+      (feature str))))
+(defn marker? [str & [pattern feature]]
+  "accepts a string and pattern, returning true if the str matches the pattern.
+Multiple patterns can be given, and can be as complex as needed: might require or patterns,
+or guarded ones. " 
+  (if pattern
+    (match (tokenize str) pattern true
+                 :else false)
+    (if feature
+      (feature str))))
+(marker? "THE BOOK" ["THE" _])
+(marker? "THE BOOK" ["THE" '_])
+(marker? "THE BOOK" ["THE" "BOOK"])
+(marker? "    THE BOOK" indented?)
+(marker? "     THE BOOK" indented?)
+(marker? "      THE BOOK" indented?)
+(vec? [])
+(vector? [])
+exit
+'("THE" _)
+(into [] '("THE" _))
+(list? 
+'())
+(into vector '(1))
+(into vec '(1))
+(defn marker? [str pattern/feature] ;give as list, put into vector
+  "accepts a string and pattern, returning true if the str matches the pattern.
+Multiple patterns can be given, and can be as complex as needed: might require or patterns,
+or guarded ones. " 
+  (if (list? pattern/feature)
+    (match (tokenize str) (into [] pattern/feature) true
+                 :else false)
+    (pattern/feature str)))
+(defn marker? [str marker] ;give as list, put into vector
+  "accepts a string and pattern, returning true if the str matches the pattern.
+Multiple patterns can be given, and can be as complex as needed: might require or patterns,
+or guarded ones. " 
+  (if (list? marker)
+    (match (tokenize str) (into [] marker) true
+                 :else false)
+    (marker str)))
+(use 'clojure.core.match)
+(defn marker? [str marker] ;give as list, put into vector
+  "accepts a string and pattern, returning true if the str matches the pattern.
+Multiple patterns can be given, and can be as complex as needed: might require or patterns,
+or guarded ones. " 
+  (if (list? marker)
+    (match (tokenize str) (into [] marker) true
+                 :else false)
+    (marker str)))
+(defn marker? [str marker] ;give as list, put into vector
+  "accepts a string and pattern, returning true if the str matches the pattern.
+Multiple patterns can be given, and can be as complex as needed: might require or patterns,
+or guarded ones. " 
+  (if (list? marker)
+    (let [marker-vec (into [] marker)]
+      (match (tokenize str) marker-vec true
+                 :else false)
+    (marker str)))
+)
+exit
+(marker? "THE BOOK" ["THE" "BOOK"])
+(marker? "THE BOOK" ("THE" "BOOK"))
+(into [] '("THE" "BOOK"))
+(list? '("TH" "kd"))
+(marker? "    THE BOOK" indented?)
+(marker? "THE BOOK" '("THE" "BOOK"))
+(marker? "THE BOOK" '("THE" _))
+(tokenize "the book")
+(def a ["THE" _])
+(def a (into [] '("THE" _)))
+a
+(use 'clojure.
+core.match)
+(use 'clojure.core.match
+)
+a
+(match ["THE" "BOOK"] a)
+(match ["THE" "BOOK"] a true)
+(match ["THE" "BOOK"] [a] true)
+(match ["THE" "BOOK"] a true :else false)
+(match ["THE" "BOOK"] [a] true :else false)
+exit
+(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
+(def pl "text-files/POETRY/paradise-lost.txt")
+(def pl (map-text "text-files/POETRY/paradise-lost.txt"))
+(def pl (map-text "text-files/POETRY/paradise-lost.txt" (fn [line] (match (tokenize line) ["BOOK" _])) empty? (fn [line] (not (empty? line)))))
+(use 'clojure.core.match
+)
+(def pl (map-text "text-files/POETRY/paradise-lost.txt" (fn [line] (match (tokenize line) ["BOOK" _])) empty? (fn [line] (not (empty? line)))))
+(match [1 2 3 4 5] [1 2])
+(match [1 2 3 4 5] [1 2] true)
+(match [1 2 3 4 5] [1 2] true :else false)
+(match [1 2 3 4 5] [1 2 _ _ _] true :else false)
+(def pl (map-text "text-files/POETRY/paradise-lost.txt" (fn [line] (if (uppercase? line)(match (tokenize line) ["BOOK" _]))) empty? (fn [line] (not (empty? line)))))
+(def pl (map-text "text-files/POETRY/paradise-lost.txt" (fn [line] (if (uppercase? line)(match (tokenize line) ["BOOK" _] true :else false))) empty? (fn [line] (not (empty? line)))))
+pl
+(seg pl 1 1 1)
+(seg pl 1 1 2)
+(seg pl 2 1 2)
+(seg pl 10 1 2)
+(seg pl 9 1 2)
+(seg pl 8 1 2)
+(seg pl 6 1 2)
+(seg pl 6 1 1)
+(seg pl 5 1 1)
+(def pl (map-text "text-files/POETRY/paradise-lost.txt" (fn [line] (if (uppercase? line)(match (tokenize line) ["BOOK" _] true ["BOOK" _ _] true :else false))) empty? (fn [line] (not (empty? line)))))
+pl
+(seg pl 10 1 1)
+(prt pl 10)
+(seg pl 10 1 0)
+(seg pl 10 0 0)
+(rand-seg pl 10)
+(rand-seg pl)
+(dotimes [i 10] (println (rand-seg pl)))
+bible
+(dotimes [i 10] (println (rand-seg bible)))
+(dotimes [i 2] (println (rand-seg bible)) (println (rand-seg pl)))
+(get "That to the highth of this great Argument" pl)
+(get pl "That to the highth of this great Argument")
+(re-matches #"hello" "hello, world")
+(re-matches #"hello*" "hello, world")
+(re-matches #"hello *" "hello, world")
+(re-matches #"hello .*" "hello, world")
+(re-matches #"hello.*" "hello, world")
+(re-matches #"THE.* BOOK" "THE FIRST BOOK")
+(re-matches #"THE.* SHIT" "THE FIRST BOOK")
+(re-matches #"THE.* BOOK" "THE FIRST BOOK")
+(def a "THE.* BOOK")
+a
+(re-matches #a "THE FIRST BOOK")
+(def a #"THE.* BOOK")
+a
+(re-matches a "THE FIRST BOOK")
+(string? a)
+(type a)
+(pattern? a)
+(regex? a)
+a
+(= java.util.regex.Pattern (type a))
+(Pattern? a)
+(defn pattern? [pat]
+  (= java.util.regex.Pattern pat))
+(pattern? a)
+a
+exit
+(map-poetry "text-files/POETRY/paradise-lost.txt" "BOOK.*" empty? not-empty?) 
+(not-empty? '(1))
+(map-poetry "text-files/POETRY/paradise-lost.txt" "BOOK.*" empty? not-empty) 
+(map-poetry "text-files/POETRY/paradise-lost.txt" #"BOOK.*" empty? not-empty) 
+a
+(def a #"BOOK.*")
+a
+(re-matches a "BOOK I")
+(re-matches a "BOOK I.")
+(re-matches a "BOOK X.")
+(pattern? a)
+(marker? "BOOK I" #"BOOK.*")
+(marker? "  BOOK I" #"BOOK.*")
+(marker? "  BOOK I" #".*BOOK.*")
+(map-poetry "text-files/POETRY/paradise-lost.txt" #".*BOOK.*" empty? not-empty) 
+(map-poetry "text-files/POETRY/paradise-lost.txt" #"BOOK.*" empty? not-empty) 
+      THE END OF THE FIRST BOOK.
+(re-matches #".*BOOK.*" "      THE END OF THE FIRST BOOK.
+")
+(re-matches #".*BOOK.*" "      THE END OF THE FIRST BOOK.")
+(map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? not-empty) 
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? not-empty) )
+pl
+(prt pl 1)
+(map println (prt pl 1))
+(prt pl 1)
+(sec pl 1 1)
+(map println (sec pl 1 1))
+(doseq [i (sec pl 1 1)] (println i))
+(marker? "Of Mans First Disobedience, and the Fruit" (fn [line] (and (not-empty line) (not (indented? line)))))
+(and 1 2 3)
+(and 1 nil 2)
+exit
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? not-empty) )
+pl
+(print-entry pl 1 1 1)
+(print-entry pl 1 1 )
+(print-entry pl 1)
+(print-entry pl)
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? not-empty) )
+pl
+(prt-count pl)
+(prt pl 8)
+(prt pl )
+(prt pl 9)
+(prt pl 10)
+(sec pl 9 1 1)
+(seg pl 9 1 1)
+(seg pl 9 1 0)
+(seg pl 9 0 0)
+(seg pl 9 1 0)
+(seg pl 9 1 1)
+(seg pl 9 1 2)
+(seg pl 9 1 3)
+pl
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? not-empty) )
+(print-entry pl)
+(prt pl 9)
+(print-entry pl 9)
+(def pr (map-poetry "text-files/POETRY/paradise-regained.txt" #"THE.* BOOK" indented? not-empty) )
+pr
+(def pr (map-poetry "text-files/POETRY/paradise-regained.txt" #"  THE.* BOOK" indented? not-empty) )
+pr
+(seg pr 1 1 1)
+(seg pr 1 1 0)
+(seg pr 1 0 0)
+(seg pr 1 0 1)
+(seg pr 1 0 2)
+(seg pr 1 0 0)
+(seg pr 1 1 0)
+(seg pr 1 1 1)
+exit
+(def pr (map-poetry "text-files/POETRY/paradise-regained.txt" #"  THE.* BOOK" indented? not-empty) )
+(sec pr 1 1)
+(sec pr 1 0)
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? not-empty) )
+(sec pl 1 0)
+(sec pl 1 1)
+(print-entry pl 1 1)
+(print-entry pr 1 1)
+(print-entry pr 1 0)
+(print-entry pl)
+(prt pl 1)
+(sec pl 0)
+(sec pl 1 0)
+(sec-count pl 1)
+(sec pl 1 1)
+(sec-count pr 1)
+exit
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? not-empty) )
+(sec pl 1 1)
+(sec-count pr 1)
+exit
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? not-empty) )
+(sec-count pr 1)
+(sec-count pr 2)
+(sec-count pl 2)
+(sec-count pl 1)
+exit
+(def pr (map-poetry "text-files/POETRY/paradise-regained.txt" #"  THE.* BOOK" indented? not-empty) )
+pr
+(sec pr 1 1)
+(sec pr 1 0)
+(prt pr 1)
+(seg pr 1 1 0)
+(seg pr 1 0 0)
+(seg pr 0 0 0)
+(seg pr 1 0 0)
+pl
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? not-empty) )
+(sec pl 1 0)
+(sec pl 1 1)
+(prt pl 1)
+(print-entry pr 1 1)
+(print-entry pr 1 0)
+(print-entry pr 1 1)
+exit
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? not-empty) )
+(print-random pl)
+(dotimes [i 10] (print-random pl))
+(dotimes [i 10] (print-random pl 1))
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? not-empty) )
+pl
+(dotimes [i 10] (print-random pl))
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? (fn [line] (and (not-emtpy line) (not (uppercase? line))) )))
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? (fn [line] (and (not-empty line) (not (uppercase? line))) )))
+pl
+(sec pl 1 1)
+(prt pl 1)
+(print-entry pl 1)
+(print-entry pl 2)
+(print-entry pl)
+(sec pl 1)
+(sec pl 1 0) 
+(sec pl 1 1) 
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? (fn [line] (and (not-empty line) (not (uppercase? line))) )))
+(third '(1 2 3 4))
+(fourth '(1 2 3 4))
+(second '(1 2 3 4))
+(nth 1 '(1 2 3 4))
+(nth '(1 2 3 4) 3)
+exit
+(def pl (map-poetry "text-files/POETRY/paradise-lost.txt" #"  BOOK.*" empty? (fn [line] (and (not-empty line) (not (uppercase? line))) )))
+pl
+(cmp-index '(1 1 1) '(2 3 4)
+)
+(cmp-index '(3 1 1) '(2 3 4)
+)
+(cmp-index '(3 1 1) '(3 3 4)
+)
+(cmp-index '(3 1 1) '(3 3 1))
+(cmp-index '(3 1 1) '(3 0 1))
+(sorted-map-by cmp-index pl)
+c
+(sorted-map-by cmp-index pl)
+2
+pl
+(get '(10 17 7) pl)
+(seg pl 10 17 7)
+(get pl '(10 17 7))
+pl
+(compare '(1 2 3) '(1 1 1))
+(sorted-map-by > pl)
+3
+'{:a 'b)
+'{:a 'b
+}
+{}
+[]
+][
+]
+[]
+][
+]
+][][
+]
+(map-bible "text-files/the-holy-bible/KJV-text-only.txt")
+(def b (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
+(sorted-map-by cmp-index b)

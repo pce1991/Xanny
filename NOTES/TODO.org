@@ -36,12 +36,28 @@
      sometims they,re just indented. also, deal with letters in Ulysses, and the play.
      letters begin with a name, a body, and then farewell; beginning and end are indented.
      make sure to preserve spaces in mapping, or else map-sentences won't know.
+**** TODO expand map to go by sentence, or generate a new one from regular.
+     need for connecting words to definitions or annotations, like in Finnegan's wake.
+**** TODO POETRY AID
+     Check meter, if it doesn't fit, do replacement like in spelling correction, checking the cost of word replacements that'd make it conform.
+     Look up synonyms in wordnet, but double check with webster's? Maybe its only wordnet definitions that are lacksuster, and it'd be interesting to find synonyms that are a closer match psychologically.
+     
 *** FOR CONSEDERATION
 **** TODO find segments of a text! this migh be easier than the marker method. 
      deal with them as if it were a book.
 **** dont clean up a string until that data has been used in all mapping
+**** TODO !! write separate functions to go through and map in small steps.
+     this would allow for more general mapping, like grabbing all the chapters, or by each word. 
+     might involve doing maps like {:vol {:prt {:chap {:seq ["a" "x" "c" "."]}}}} and these words are concatenated along with puntuation to form the whole sequence, adding spaces in between each (make sure to handle -, " and such) and that makes since, since a vec is a seq I think. I can already do this though. how to keep efficient. You should be able to just ask for the 4000th word, and it'll tell you where in the text it is. I need a better way to split up sentences than the tokenizer, it's way too slow (but then again, if the map is saved it might not matter).
+**** New map design 
+     {:vols {0 {:parts {1 {:title "GEN" :sec {1 {:title "chap 1"} 2 {:title  "chap 2" :contents {1 "In the beginning"}}}}}} 1 {}}}
 *** ISSUES
 **** "quotes like this" --by me are mapped as two different sentences.
      this sucks because quotes should be considered a whole unit, or at least be contextualized
 **** sometimes consecutive linebreaks mean something. dont fight it.
 ***** this in the case in Finnegan's Wake where each sentence is 1 line apart but paragraphs are 2
+**** <2014-05-13 Tue> bible is null for some reason, make sure to clear seq of any nils, probably not it though.
+***** TODO map multiple translations to the same index, so you have {[0 1 1 1] {:KJV "" :NRSV ""}}
+****** texts might have different formatting though.
+**** TODO HANDLE UNICODE SOMEHOW!
+     It prints them fine when its copied, but either reading it, or putting it in a seq changes it it seems. 
