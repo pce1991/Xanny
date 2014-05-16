@@ -38,20 +38,27 @@
     (doseq [entry map]
       (.write wrt (with-out-str (pr entry))))))
 
+;use this to write finnegans wake once the extra spaces are removed. lazy, I know.
+;doesnt really help either it seems, the PDF conversion is fucked.
 ;write list to file, add new line after each entry
 (defn write-text [path seq]
   (with-open [wrt (io/writer path :replace true)]
     (doseq [entry seq]
-      (.write wrt entry))))
+      (.write wrt (str entry "\n")))))
 
 ;==========================================================================================
 ;==========================================================================================
 ;EDITING AND FORMATTING TEXTS
 ;==========================================================================================
 ;==========================================================================================
+;Really needs to be solid if I'm ever going to convert my library from page to PDF to .txt
+
+
 ;this will be most useful for texts converted from PDFs I imagine. will also be used to
 ;remove gutenberg stamps, licenses, and other crap. 
 ;removes all gutenberg shit!
+
+;make sure files are in UTF-8 formatting.
 
 (defn trim-blanks [text-seq] 
   "removes blankline from the front so title is asways first"
@@ -64,15 +71,16 @@
 
 ;these are reversing it if there are no start and end markers!
 
-;usually begins after "X by Y", but sometimes there's a disclaimer. returns a lazy-seq
+;allow an option to toss the ending as in gutenberg, or to save it like in the bible.
 (defn trim-front [text-path start]
-  (with-open [rdr (io/reader text-path)]
+  "This strips the text up to a point 'start' and returns a seq from that point."
+  (with-open [rdr (io/reader text-path :encoding "UTF-8")]
     (loop [seq (line-seq rdr)]
       (if (nil? start)
         (into [] (trim-blanks seq))
         (if (re-matches start (first seq))
-            (into [] (rest seq)) ;vector cause stream closes
-            (recur (rest seq)))))))
+          (into [] (rest seq));vector cause stream closes
+          (recur (rest seq)))))))
 
 (defn trim-back [text-seq end]
   (loop [seq (reverse text-seq)]
@@ -85,17 +93,41 @@
 
 ;count consecutive line breaks and remove them. verify this works.
 ;isnt reducing everything to single line breaks. cant handle uneven number of lines.
+;change this to remove chunks of a certain length and replace them with a cleaner marker.
 (defn consecutive-lines [text-seq]
+  "reduces consecutive blanklines to a single one, thus avoidung incrementing sections several times it a text."
   (loop [seq text-seq
          new-seq ()]
     (cond (empty? seq) 
           (reverse new-seq)
-          (and (empty? (first seq))  ;instead of this, just trim until it the next item isnt a linebreak.
-               (empty? (second seq)))
+          (and (empty? (first seq))  
+               (empty? (second seq))
+               (not (empty? (first new-seq))))
           (recur (rest (rest seq))
                  (conj new-seq (first seq)))
+          ;check to make sure this isnt an odd blank, if it is, the last thing added to new-seq would be a blank
+          (and (empty? (first seq)) (empty? (first new-seq)))
+          (recur (rest seq) new-seq)
           :else (recur (rest seq)
                        (conj new-seq (first seq))))))
+
+;sometimes consecutive lines mean something, so in that situation I should go through and delete them, but place
+;a marker to show that there's a new part, section, whatever it indicates.
+;this will be useful in marking up a text
+;DOH, finns wake has a different problem, so make this more generally something to replace a chunk of text
+(defn make-linechunks-markers [text-seq in-a-row marker] 
+  "takes a string, and replaces a seq of blanklines with it to use in marking up a text."
+  (loop [seq text-seq
+         new-seq ()]
+    (cond (empty? seq)
+          (reverse new-seq)
+          (and (> (count seq) in-a-row) (every? empty? (sublist seq 0 (dec in-a-row))))
+          (recur (sublist seq (dec in-a-row)) 
+                 (conj new-seq marker))
+          :else (recur (rest seq) (conj new-seq (first seq))))))
+
+
+;sanitize texts by removing lots of mhitespace fram a line, a common error in PDF conversion it seems. 
 
 ;cut single linebreaks out of text like finnegan's wake which has them between every two lines.
 ;after all lonely lines are removed, it can be run through consecutive-lines
@@ -156,7 +188,8 @@ the str matches the pattern, or it returns function applied to str."
   (if-not (nil? marker)
     (if (pattern? marker)
       (re-matches marker str)
-      (marker str))))
+      (marker str))
+    nil))
 
 ;;; not nil, empty, return
 (defn segment? [str]
@@ -170,8 +203,8 @@ the str matches the pattern, or it returns function applied to str."
 ;mapped at 0. add map-part-marker? and figure out how to have a part be a volume marker to.
 ;add a smaller index than segment which is word.
 
-;WHERE IS THE NULL POINTER IN MAP-BIBLE HAPPENING!?!?!?!?
-;add a title and author entry for the first two lines 
+;add a title and author entry for the first two lines. sometimes its on one line, so split at ", by" it its there.
+;add fifth called "book" in between volume and part. Sh is many volumes , the bible is two books, 66 parts
 (defn map-text 
   [text-path volume? part? section? segment? map-section-marker? ;either t or f. use 1 or 0 instd
    & {:keys [start end] :or {start #"Produced by.*"
@@ -217,6 +250,9 @@ the str matches the pattern, or it returns function applied to str."
 ;maybe write something to edit a map, for things like prose where I want sentences to be combined and then mapped, which might be easier to do if I already have a map, I could just use retrieval functions and then make new entries based on combining successive entries. 
 
 ;this writes back the nils that I want as empty strings!!! screws up retrieval
+;this needs to handle parentheticals, as well as lines ending in a -; the words need to be combined. 
+;separate "a - b" into separate sentences? if so, where does the - go? get-sentences is getting in my way. just use
+;.split
 (defn map-sentences [map] 
   (loop [seq (seq map) ;cdr this down
          map {}
@@ -238,9 +274,9 @@ the str matches the pattern, or it returns function applied to str."
                    volume (inc part) 0
                    paragraph) ;retain paragraph
             (not (= section (get (first (first seq)) 2))) 
-            (if (not (= (count paragraph) ;if the whole paragraph isnt lyrical, else map it by line
-                        (count (remove (fn [x] (not (indented? x)))
-                                       paragraph))))
+            (if (not (= (count paragraph) 
+                        (count (remove (fn [x] (not (indented? x))) paragraph))))
+              ;;if the whole paragraph isnt lyrical, else map it by line
               (let [sentences (get-sentences (string/join " " paragraph))]
                 (recur (rest seq)
                        (conj map (zipmap ;what if this is nil...
@@ -249,6 +285,7 @@ the str matches the pattern, or it returns function applied to str."
                                   sentences))
                        volume part (inc section) 
                        [(second (first seq))] ))
+              ;ELSE
               (recur (rest seq)
                      (conj map (zipmap (into [] (for [i (into [] (range (count paragraph)))]
                                                   [volume part section i]))
@@ -267,6 +304,7 @@ the str matches the pattern, or it returns function applied to str."
 
 ;assumes only one extra section, need to dec more if > 2 linebreaks
 (defn dec-sec [index]
+  "Decrements every sec value in the index so blanks aren't sec 0 in some texts."
   (if (and (vector? index) (> (index 2) 0))
     (assoc index 2 
            (dec (index 2)))
@@ -342,6 +380,8 @@ the str matches the pattern, or it returns function applied to str."
             (fn [line] (and (not (empty? line)) (not (newline? line))))
             true :start nil :end nil))
 
+;map shakespeare. split the text up into several sequences, then map map-text over them.
+
 
 (defn map-dictionary []
   )
@@ -351,6 +391,21 @@ the str matches the pattern, or it returns function applied to str."
 ;MAP RETRIEVAL AND ACCESS
 ;==========================================================================================
 ;==========================================================================================
+
+;create a map of authors or works.
+;NULL POINTER ON paradise lost. now why is that? similar to problem with map-bible, which was!?!?!
+;oh, it was a problem with start and stop not getting values. not the problem here though :(
+;read in all the maps in another funtion, but hardcode it now. title them from the title given in the metadata
+;; (def texts {"John Milton"
+;;             {"Paradise-Lost" (map-text "text-files/POETRY/paradise-lost.txt" nil #"  BOOK.*" 
+;;                                        indented? (fn [line] (and (not-empty line) 
+;;                                                                  (not (uppercase? line)))) false)
+;;              "Paradise Regained" (map-text"text-files/POETRY/paradise-regained.txt" 
+;;                                           nil #"  THE.* BOOK" indented? not-empty true)}
+;;             "Herman Melville" 
+;;             {"Moby-Dick" (map-sentences (map-text "text-files/PROSE/Moby-Dick.txt" 
+;;                                                   #"ETYMOLOGY." #"CHAPTER.*|Epilogue" 
+;;                                                   empty? not-empty false))}})
 
 ;FUCK THESE! I can use select-keys in one general function which will return a sub-map
 

@@ -13,6 +13,10 @@
 (defn element-count [coll element]
   (count (filter #(= element %) coll)))
 
+(defn sublist 
+  ([list start]  (seq (subvec (into [] list) start)))
+  ([list start stop] (seq (subvec (into [] list) start stop))))
+
 ;=============================================
 ;STRING TRIMMING
 ;=============================================

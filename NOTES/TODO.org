@@ -3,11 +3,12 @@
 *** TO DO
 **** TODO read maps from files
 **** TODO allow optional index of length 5? use nesting?
-**** TODO map verse in sentence-based text
 **** TODO search for phrase in one or more texts
 ***** TODO search by "contains", grammer, subject
 **** TODO deal with texts containing a lot of junk, like PDFs
      detect repeated lines like title/author headers
+**** TODO analyze text to determine how to map
+     check repeating patterns that aren't sentences. check justification
 **** TODO Build UI for navigating/comparing.
      come up with a lot of shortcuts. 
      use printf or format for console comparison. Line things up like this.
@@ -15,8 +16,6 @@
 	 htnao hteno assssr,c.p mntsntogr ";htneoas"	htneoas ahhoh ehho ah o
 	 aoeuhnaoseunonuh ao a o b sabs ;r u baoeu	htnasoeutnhaoesnuthaoeu
     so that the liked text begins where it's referenced, then continues through a certain point, so you could say you only want the context of the line, or the rest of the chapter.
-**** TODO analyze text to determine how to map
-     check repeating patterns that aren't sentences. check justification
 **** TODO map websters dict
 **** TODO word hyphenation/syllabification
      what are the difeerences? use split to get vector of syllables to count.
@@ -32,16 +31,15 @@
 **** TODO mark data by time, train in chronological order
 **** TODO read text to find the proper index count so it isnt static
      might mess with retrieval functions since seg won't asways take same # of args
-**** TODO retain lyrics in sentence mapping, check justified?
-     sometims they,re just indented. also, deal with letters in Ulysses, and the play.
-     letters begin with a name, a body, and then farewell; beginning and end are indented.
-     make sure to preserve spaces in mapping, or else map-sentences won't know.
 **** TODO expand map to go by sentence, or generate a new one from regular.
      need for connecting words to definitions or annotations, like in Finnegan's wake.
 **** TODO POETRY AID
      Check meter, if it doesn't fit, do replacement like in spelling correction, checking the cost of word replacements that'd make it conform.
+     Check for alliteration, shoving how long the sequence is, any breaks like "and" between words. 
      Look up synonyms in wordnet, but double check with webster's? Maybe its only wordnet definitions that are lacksuster, and it'd be interesting to find synonyms that are a closer match psychologically.
-     
+**** TODO map multiple translations to the same index, so you have {[0 1 1 1] {:KJV "" :NRSV ""}}
+***** texts might have different formatting though.
+
 *** FOR CONSEDERATION
 **** TODO find segments of a text! this migh be easier than the marker method. 
      deal with them as if it were a book.
@@ -55,9 +53,5 @@
 **** "quotes like this" --by me are mapped as two different sentences.
      this sucks because quotes should be considered a whole unit, or at least be contextualized
 **** sometimes consecutive linebreaks mean something. dont fight it.
-***** this in the case in Finnegan's Wake where each sentence is 1 line apart but paragraphs are 2
-**** <2014-05-13 Tue> bible is null for some reason, make sure to clear seq of any nils, probably not it though.
-***** TODO map multiple translations to the same index, so you have {[0 1 1 1] {:KJV "" :NRSV ""}}
-****** texts might have different formatting though.
-**** TODO HANDLE UNICODE SOMEHOW!
-     It prints them fine when its copied, but either reading it, or putting it in a seq changes it it seems. 
+***** this in the case in Finnegan's Wake where each sentence is 1 line apart but paragraphs are 2, parts 3
+
