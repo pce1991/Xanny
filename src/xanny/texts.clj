@@ -215,11 +215,10 @@ the str matches the pattern, or it returns function applied to str."
 
 ;add a title and author entry for the first two lines. sometimes its on one line, so split at ", by" it its there.
 ;add fifth called "book" in between volume and part. Sh is many volumes , the bible is two books, 66 parts
-;guess I also need a :toss option for trim-front/back
 (defn map-text 
   [text-path volume? part? section? segment? map-section-marker? ;either t or f. use 1 or 0 instd
    & {:keys [start end toss] :or {start #"Produced by.*"
-                                  end #"End of\s?(the)? Project Gutenberg.*"
+                                  end #".*(?i)End of\s?(the)? Project Gutenberg.*" 
                                   toss true}}] ;this isn't matching all
   "returns a map of the text with keywords representing part, section, and segment.s"
  
@@ -408,7 +407,8 @@ the str matches the pattern, or it returns function applied to str."
 ;NULL POINTER ON paradise lost. now why is that? similar to problem with map-bible, which was!?!?!
 ;oh, it was a problem with start and stop not getting values. not the problem here though :(
 ;read in all the maps in another funtion, but hardcode it now. title them from the title given in the metadata
-(def texts {"John Milton"
+(def texts {"Homer" {"The Illiad" "The Odyssey"} ;I have to get a chunk remover first to word on illustrations
+            "John Milton"
             {"Paradise-Lost" (map-text "text-files/POETRY/paradise-lost.txt" nil #"  BOOK.*" 
                                        indented? (fn [line] (and (not-empty line) 
                                                                  (not (uppercase? line)))) false)
@@ -418,7 +418,8 @@ the str matches the pattern, or it returns function applied to str."
             "Herman Melville" 
             {"Moby-Dick" (map-sentences (map-text "text-files/PROSE/Moby-Dick.txt" 
                                                   #"ETYMOLOGY." #"CHAPTER.*|Epilogue" 
-                                                  empty? not-empty false))}})
+                                                  empty? not-empty false))}
+            "James Joyce"})
 
 ;FUCK THESE! I can use select-keys in one general function which will return a sub-map
 

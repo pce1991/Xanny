@@ -42,7 +42,10 @@
 **** TODO do information extraction for named entities and relations
 **** TODO build corpora
      Partially there, just need nice formatting, and to keep track of where it occurred. Down to the word, or just "it occurred in this sentence"
-**** TODO Write regex that gives you an expression that solves the two cases you want to match. 
+**** TODO Write regex that gives you an expression that solves the two cases you want to match.
+**** TODO REGEX dictionary. Give me all the words containing an A, an X, and a G. 
+     So useful.
+**** TODO  REMOVE CHUNKS
      
 *** FOR CONSEDERATION
 **** TODO find segments of a text! this migh be easier than the marker method. 
@@ -54,14 +57,38 @@
 **** New map design 
      {:vols {0 {:parts {1 {:title "GEN" :sec {1 {:title "chap 1"} 2 {:title  "chap 2" :contents {1 "In the beginning"}}}}}} 1 {}}}
 **** should you be able to get the 10,000th word? Brad suggested it be mapped this way
+**** REGEX DICTIONARY
+     use re-seq
 *** ISSUES
 **** "quotes like this" --by me are mapped as two different sentences.
      this sucks because quotes should be considered a whole unit, or at least be contextualized
 **** sometimes consecutive linebreaks mean something. dont fight it.
 ***** this in the case in Finnegan's Wake where each sentence is 1 line apart but paragraphs are 2, parts 3
+**** map sentences doesnt combine philoso-phy into one word. 
+   
 *** TEXTS TO MAP
+
     Ulysses (what's wrong with current map again? that's right, two lines mark a new part! but there are other occurences where it does not! ugh. wait, that was gutenbergs, another uses ***** which is so much better, sometimes uses fewer to denote a change in character in that one episode.)
+    
+    Finnegans Wake (remove those copywright chunks between chapters)
     Fairie Queene (strip out the title at top of each page)
-    Finnegans Wake (remove those copywright chunks between words)
-    Cantebury Tales (unforeseen complication will arise)
     The Divine Comedy (include both translations)
+
+**** Cantebury Tales (unforeseen complication will arise)
+     I can use the weird gutenberg one with lots of <2> and experiment with adding footnotes and translations, but do I tie it to line, or associate a new key, which is the word its tied to, thus the sentence contains a key which is linked to a definition.
+
+**** ILLIAD
+     Get rid of illustrations with a chunk remover, and modify the start and end matcher to match Uppercase patterns
+
+     it has no "produced by", this was unforeseen; give it its own start.
+
+**** Dictionary
+     Just get keys for now to experiment with a regex dictionary.
+
+     Can't use map-text for this
+
+*** 4 things to do <2014-05-17 Sat>
+    Map dictionary and build regex
+    Remove chunks
+    Add translations
+    Add title and author to the metadata of map. 
