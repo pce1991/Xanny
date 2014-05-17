@@ -61,34 +61,44 @@
 ;make sure files are in UTF-8 formatting.
 
 (defn trim-blanks [text-seq] 
-  "removes blankline from the front so title is asways first"
+  "removes blankline from the front so title is always first"
   (loop [seq text-seq]
     (if (empty? (first seq))
       (recur (rest seq))
       seq)))
+
+;rewrite these with vectors: less reversing. 
 
 ;these give null pointers when the start or end isnt found. fix it
 
 ;these are reversing it if there are no start and end markers!
 
 ;allow an option to toss the ending as in gutenberg, or to save it like in the bible.
-(defn trim-front [text-path start]
+(defn trim-front [text-path start toss?]
   "This strips the text up to a point 'start' and returns a seq from that point."
   (with-open [rdr (io/reader text-path :encoding "UTF-8")]
-    (loop [seq (line-seq rdr)]
-      (if (nil? start)
-        (into [] (trim-blanks seq))
-        (if (re-matches start (first seq))
-          (into [] (rest seq));vector cause stream closes
-          (recur (rest seq)))))))
+    (if (nil? start)
+      (into [] (trim-blanks (line-seq rdr)))
+      (loop [seq (line-seq rdr)]
+        (if (empty? seq)
+          (into [] (line-seq rdr))            ;if its never found, return the rdr
+          (if (re-matches start (first seq)) ;if it is empty it hasnt found end, so just return seq
+            (if toss?
+              (into [] (rest seq))
+              (into [] seq))               ;vector cause stream closes
+            (recur (rest seq))))))))
 
-(defn trim-back [text-seq end]
-  (loop [seq (reverse text-seq)]
-    (if (nil? end)
-      (into [] (reverse seq)) 
-      (if (re-matches end (first seq))
-        (reverse (rest seq)) ;toss the ending marker.
-        (recur (rest seq))))))
+(defn trim-back [text-seq end toss?]
+   (if (nil? end)
+      (into [] (reverse seq))
+      (loop [seq (reverse text-seq)]
+        (if (empty? seq) ;if its empty the end isnt found, return the text unchanged. 
+          text-seq 
+          (if (re-matches end (first seq));if its empty the marker hasnt been found. 
+            (if toss?
+              (reverse (rest seq))
+              (reverse seq))
+            (recur (rest seq)))))))
 
 
 ;count consecutive line breaks and remove them. verify this works.
@@ -142,8 +152,8 @@
           (recur (rest seq) new-seq) 
           :else (recur (rest seq) (conj new-seq (first seq))))))
 
-(defn clear-text [text-path start end]
-  (consecutive-lines (trim-back (trim-front text-path start) end)))
+(defn clear-text [text-path start end toss?]
+  (consecutive-lines (trim-back (trim-front text-path start toss?) end toss?)))
 
 
 ;clear out the top title and page number from a PDF text
@@ -205,14 +215,16 @@ the str matches the pattern, or it returns function applied to str."
 
 ;add a title and author entry for the first two lines. sometimes its on one line, so split at ", by" it its there.
 ;add fifth called "book" in between volume and part. Sh is many volumes , the bible is two books, 66 parts
+;guess I also need a :toss option for trim-front/back
 (defn map-text 
   [text-path volume? part? section? segment? map-section-marker? ;either t or f. use 1 or 0 instd
-   & {:keys [start end] :or {start #"Produced by.*"
-                              end #"End of[the]? Project Gutenberg.*"}}] 
+   & {:keys [start end toss] :or {start #"Produced by.*"
+                                  end #"End of\s?(the)? Project Gutenberg.*"
+                                  toss true}}] ;this isn't matching all
   "returns a map of the text with keywords representing part, section, and segment.s"
  
                                         ;(println (empty? (clear-text text-path start end)))
-  (loop [seq (clear-text text-path start end) ;the problem is start and end aren't getting new val
+  (loop [seq (clear-text text-path start end toss) ;the problem is start and end aren't getting new val
          map {}
          volume 0
          part 0
@@ -396,16 +408,17 @@ the str matches the pattern, or it returns function applied to str."
 ;NULL POINTER ON paradise lost. now why is that? similar to problem with map-bible, which was!?!?!
 ;oh, it was a problem with start and stop not getting values. not the problem here though :(
 ;read in all the maps in another funtion, but hardcode it now. title them from the title given in the metadata
-;; (def texts {"John Milton"
-;;             {"Paradise-Lost" (map-text "text-files/POETRY/paradise-lost.txt" nil #"  BOOK.*" 
-;;                                        indented? (fn [line] (and (not-empty line) 
-;;                                                                  (not (uppercase? line)))) false)
-;;              "Paradise Regained" (map-text"text-files/POETRY/paradise-regained.txt" 
-;;                                           nil #"  THE.* BOOK" indented? not-empty true)}
-;;             "Herman Melville" 
-;;             {"Moby-Dick" (map-sentences (map-text "text-files/PROSE/Moby-Dick.txt" 
-;;                                                   #"ETYMOLOGY." #"CHAPTER.*|Epilogue" 
-;;                                                   empty? not-empty false))}})
+(def texts {"John Milton"
+            {"Paradise-Lost" (map-text "text-files/POETRY/paradise-lost.txt" nil #"  BOOK.*" 
+                                       indented? (fn [line] (and (not-empty line) 
+                                                                 (not (uppercase? line)))) false)
+
+             "Paradise Regained" (map-text"text-files/POETRY/paradise-regained.txt" 
+                                          nil #"  THE.* BOOK" indented? not-empty true)}
+            "Herman Melville" 
+            {"Moby-Dick" (map-sentences (map-text "text-files/PROSE/Moby-Dick.txt" 
+                                                  #"ETYMOLOGY." #"CHAPTER.*|Epilogue" 
+                                                  empty? not-empty false))}})
 
 ;FUCK THESE! I can use select-keys in one general function which will return a sub-map
 

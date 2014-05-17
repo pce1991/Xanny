@@ -44,6 +44,7 @@
      Partially there, just need nice formatting, and to keep track of where it occurred. Down to the word, or just "it occurred in this sentence"
 **** TODO Write regex that gives you an expression that solves the two cases you want to match. 
      
+     
 *** FOR CONSEDERATION
 **** TODO find segments of a text! this migh be easier than the marker method. 
      deal with them as if it were a book.
