@@ -65,6 +65,8 @@
        (into [] (seq "    ")))
     false))
 
+;include one to check if its just indented twolines, or maybe check if its totally left justified
+
 ;justified is just 1 > than indented
 (defn justified? [line]
   (if (>= (count str) 5)

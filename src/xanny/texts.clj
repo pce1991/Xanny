@@ -1,12 +1,13 @@
 (ns xanny.texts
   (:require [clojure.string :as string]
             [clojure.core.match :as match]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            )
   (:use
         ;[clojure.string]
         ;include clojure match
-        [xanny.nlp]
-        [xanny.utilities]))
+   [xanny.nlp]
+   [xanny.utilities]))
 ;translate my scheme code here mostly. might need to use some nlp stuff. 
 
 ;==========================================================================================
@@ -73,6 +74,9 @@
 
 ;these are reversing it if there are no start and end markers!
 
+;returning empty on some stuff
+
+;signal an error if empty
 ;allow an option to toss the ending as in gutenberg, or to save it like in the bible.
 (defn trim-front [text-path start toss?]
   "This strips the text up to a point 'start' and returns a seq from that point."
@@ -80,6 +84,7 @@
     (if (nil? start)
       (into [] (trim-blanks (line-seq rdr)))
       (loop [seq (line-seq rdr)]
+        
         (if (empty? seq)
           (into [] (line-seq rdr))            ;if its never found, return the rdr
           (if (re-matches start (first seq)) ;if it is empty it hasnt found end, so just return seq
@@ -90,7 +95,7 @@
 
 (defn trim-back [text-seq end toss?]
    (if (nil? end)
-      (into [] (reverse seq))
+      text-seq
       (loop [seq (reverse text-seq)]
         (if (empty? seq) ;if its empty the end isnt found, return the text unchanged. 
           text-seq 
@@ -104,7 +109,7 @@
 ;count consecutive line breaks and remove them. verify this works.
 ;isnt reducing everything to single line breaks. cant handle uneven number of lines.
 ;change this to remove chunks of a certain length and replace them with a cleaner marker.
-(defn consecutive-lines [text-seq]
+(defn cut-consecutive-lines [text-seq]
   "reduces consecutive blanklines to a single one, thus avoidung incrementing sections several times it a text."
   (loop [seq text-seq
          new-seq ()]
@@ -125,7 +130,7 @@
 ;a marker to show that there's a new part, section, whatever it indicates.
 ;this will be useful in marking up a text
 ;DOH, finns wake has a different problem, so make this more generally something to replace a chunk of text
-(defn make-linechunks-markers [text-seq in-a-row marker] 
+(defn make-chunks-markers [text-seq in-a-row marker] 
   "takes a string, and replaces a seq of blanklines with it to use in marking up a text."
   (loop [seq text-seq
          new-seq ()]
@@ -136,11 +141,33 @@
                  (conj new-seq marker))
           :else (recur (rest seq) (conj new-seq (first seq))))))
 
+;clear out the top title and page number from a PDF text and such things. 
+;this would be more flexible if I have an end marker, or "not" marker, that keeps cutting until a pattern indicating
+;a return to normal text is found.
+;make more general to work with any list, maybe feed it a function instead of start.
+;again, it'd be more general if I cound remove multiple chunks, like the argument, and the illustrations it Illiad.
 
-;sanitize texts by removing lots of mhitespace fram a line, a common error in PDF conversion it seems. 
+;this doesnt seem to cut what follows the line 
+(defn cut-chunk [text-seq start until]
+  "cuts a point at the first match, and extending a certain number of lines, or until a matching regex pattern is found. "
+  (if start
+    (loop [seq text-seq
+           new-seq ()]
+      (if (empty? seq)
+        (reverse new-seq)
+        (if (re-matches start (first seq))
+          (if (number? until)
+            (recur (nthrest seq (inc  until)) new-seq) ;inc: until = 1 should mean delete it and the next line
+            ;else call nth until the end is found. do I toss it or not?
+            (recur (loop [s seq]
+                     (if (re-matches until (first seq))
+                       (rest s) ;toss it
+                       (recur (rest s))))
+                   new-seq)) ;recur on a loop, but maybe there's a cleaner way. 
+          (recur (rest seq) (conj new-seq (first seq))))))
+    text-seq))
 
-;cut single linebreaks out of text like finnegan's wake which has them between every two lines.
-;after all lonely lines are removed, it can be run through consecutive-lines
+;sanitize texts by removing lots of whitespace fram a line, a common error in PDF conversion it seems. 
 
 (defn lonely-lines [text-seq]
   (loop [seq text-seq
@@ -152,11 +179,10 @@
           (recur (rest seq) new-seq) 
           :else (recur (rest seq) (conj new-seq (first seq))))))
 
-(defn clear-text [text-path start end toss?]
-  (consecutive-lines (trim-back (trim-front text-path start toss?) end toss?)))
+;just pass in nil for cut-start and until if you dont need anything cut
+(defn clear-text [text-path start end toss? cut-start until]
+  (cut-consecutive-lines (cut-chunk (trim-back (trim-front text-path start toss?) end toss?) cut-start until)))
 
-
-;clear out the top title and page number from a PDF text
 
 ;create new file out of a segment of a file. give a start and a stop, either as words, lines
 ;this is the next thing to do so I can trust the maps I have.
@@ -186,7 +212,9 @@
         (- (index1 1) (index2 1))
         (not (= (index1 2) (index2 2)))
         (- (index1 2) (index2 2))
-        :else (- (index1 3) (index2 3))))
+        (not (= (index1 3) (index2 3)))
+        (- (index1 3) (index2 3))
+        :else (- (index1 4) (index2 4))))
 
 ;danger, gotten null pointer here, evaluate after cheching eof.
 (defn file-end? [line]
@@ -215,46 +243,56 @@ the str matches the pattern, or it returns function applied to str."
 
 ;add a title and author entry for the first two lines. sometimes its on one line, so split at ", by" it its there.
 ;add fifth called "book" in between volume and part. Sh is many volumes , the bible is two books, 66 parts
+;make all these optional so its more explicit whats being designated as a volume, part, etcetera
 (defn map-text 
-  [text-path volume? part? section? segment? map-section-marker? ;either t or f. use 1 or 0 instd
-   & {:keys [start end toss] :or {start #"Produced by.*"
-                                  end #".*(?i)End of\s?(the)? Project Gutenberg.*" 
-                                  toss true}}] ;this isn't matching all
+  [text-path volume? book? part? section? segment? map-section-marker? ;either t or f. use 1 or 0 instd
+   & {:keys [start end toss? cut-start cut-until] 
+      :or {start #"Produced by.*|This etext was prepared by.*"
+           end #".*(?i)End of\s?(the)? Project Gutenberg.*" 
+           toss? true
+           cut-start nil
+           cut-until nil}}] ;this isn't matching all
   "returns a map of the text with keywords representing part, section, and segment.s"
  
                                         ;(println (empty? (clear-text text-path start end)))
-  (loop [seq (clear-text text-path start end toss) ;the problem is start and end aren't getting new val
+  (loop [seq (clear-text text-path start end toss? cut-start cut-until) 
          map {}
          volume 0
+         book 0
          part 0
          section 0
          segment 0]
+    ;(println (first seq))
     (let [line (first seq)]
       (cond (or (nil? line) (file-end? line)) 
             (into (sorted-map-by compare-index) map) 
             ;not 0 based, causing moby to map weird!
             (marker? line volume?)
             (recur (rest seq)
-                   (conj map [[(inc volume) 0 0 0] line])
-                   (inc volume) 0 0 0)
+                   (conj map [[(inc volume) 0 0 0 0] line])
+                   (inc volume) 0 0 0 0)
+            (marker? line book?)
+            (recur (rest seq)
+                   (conj map [[volume (inc book) 0 0 0] line])
+                   volume (inc book) 0 0 0)
             (marker? line part?) ;COND 1
             (recur (rest seq)
-                   (conj map [[volume (inc part) 0 0] line])
-                   volume (inc part) 0 0)
+                   (conj map [[volume book (inc part) 0 0] line])
+                   volume book (inc part) 0 0)
             (and (marker? line section?) map-section-marker?) ;COND 2
             (recur (rest seq)
-                   (conj map [[volume part (inc section) 0] line])
-                   volume part (inc section) 1) ;put next segment at one instead of 0
+                   (conj map [[volume book part (inc section) 0] line])
+                   volume book part (inc section) 1) ;put next segment at one instead of 0
             (marker? line section?) ;section not to be mapped.
             (recur (rest seq)
-                   (conj map [[volume part (inc section) 0] ""]) ;easier to deal with than two cases for nil
-                   volume part (inc section) 0)
+                   (conj map [[volume book part (inc section) 0] ""]) ;easier to deal with than two cases for nil
+                   volume book part (inc section) 0)
             (marker? line segment?) ;COND3
             (recur (rest seq)
-                   (conj map [[volume part section segment] line])
+                   (conj map [[volume book part section segment] line])
                                         ;right now only cleaning this up so as to avoid messing with the formatting of markers. 
-                   volume part section (inc segment))
-            :else (recur (rest seq) map volume part section segment))))) ;dont map if NotA
+                   volume book part section (inc segment))
+            :else (recur (rest seq) map volume book part section segment))))) ;dont map if NotA
 
 ;doesn't work for sorting map it seems. 
 
@@ -268,6 +306,7 @@ the str matches the pattern, or it returns function applied to str."
   (loop [seq (seq map) ;cdr this down
          map {}
          volume 0
+         book 0
          part 0
          section 0
          paragraph []]
@@ -277,14 +316,21 @@ the str matches the pattern, or it returns function applied to str."
       (cond (not (= (get (first (first seq)) 0) volume))
             (recur (rest seq)
                    (conj map (first seq))
-                   (inc volume) 0 0
+                   (inc volume) book 0 0
                    paragraph) ;hold paragraph over???
-            (not (= part (get (first (first seq)) 1) ))
+            (not (= book (get (first (first seq)) 1)))
             (recur (rest seq)
                    (conj map (first seq))
-                   volume (inc part) 0
+                   volume (inc book) 0 0
+                   paragraph)
+            
+            (not (= part (get (first (first seq)) 2) ))
+            (recur (rest seq)
+                   (conj map (first seq))
+                   volume book (inc part) 0
                    paragraph) ;retain paragraph
-            (not (= section (get (first (first seq)) 2))) 
+
+            (not (= section (get (first (first seq)) 3))) 
             (if (not (= (count paragraph) 
                         (count (remove (fn [x] (not (indented? x))) paragraph))))
               ;;if the whole paragraph isnt lyrical, else map it by line
@@ -292,21 +338,21 @@ the str matches the pattern, or it returns function applied to str."
                 (recur (rest seq)
                        (conj map (zipmap ;what if this is nil...
                                   (into [] (for [i (into []  (range (count sentences)))]
-                                             [volume part section i]))
+                                             [volume book part section i]))
                                   sentences))
-                       volume part (inc section) 
+                       volume book part (inc section) 
                        [(second (first seq))] ))
               ;ELSE
               (recur (rest seq)
                      (conj map (zipmap (into [] (for [i (into [] (range (count paragraph)))]
-                                                  [volume part section i]))
+                                                  [volume book part section i]))
                                        (map cleanup-string  paragraph)));why no work?
-                     volume part (inc section)
+                     volume book part (inc section)
                      [(second (first seq))]))
             ;if its justified, dont add to paragraph, just put in map
-            ;what if there's already something in paragraph?
+            ;what if there's already something in paragrapch?
             :else (recur (rest seq)
-                         map volume part section
+                         map volume book part section
                          (conj paragraph (second (first seq)))))
       (into (sorted-map-by compare-index) map))))  
 ;this doesnt need to be sorted, only used it to get here.
@@ -395,6 +441,21 @@ the str matches the pattern, or it returns function applied to str."
 
 
 (defn map-dictionary []
+  "returns a map with keys tied to seqs containing pronunciation key value vectors"
+  (with-open [rdr (io/reader "text-files/websters.txt" :encoding "UTF-8")]
+    (loop [seq (line-seq rdr)
+           map {}]
+      (let [line (first seq)]
+        (if (empty? seq)
+          map
+          (if (uppercase? line)
+            (recur (rest seq)
+                   (merge-with concat map {line {:pronunciation (second seq)}})) ;add a versions thing so horse n isnt lost to v. 
+            (recur (rest seq) map) ;normally would add to definition
+))))))
+
+;not uppercase words, so split at 1st period.
+(defn map-dictionary-latin []
   )
 
 ;==========================================================================================
@@ -404,22 +465,34 @@ the str matches the pattern, or it returns function applied to str."
 ;==========================================================================================
 
 ;create a map of authors or works.
-;NULL POINTER ON paradise lost. now why is that? similar to problem with map-bible, which was!?!?!
-;oh, it was a problem with start and stop not getting values. not the problem here though :(
-;read in all the maps in another funtion, but hardcode it now. title them from the title given in the metadata
-(def texts {"Homer" {"The Illiad" "The Odyssey"} ;I have to get a chunk remover first to word on illustrations
+;way too slow to do all of these, just write it somewhere. this should really be a function map-all-texts
+(def texts {
+            ;; "Bible" (map-bible)
+            ;; "Webster's Dictionary" (map-dictionary)
+            ;; "Homer" {"The Illiad" (map-text "text-files/POETRY/illiad-pope.txt"
+            ;;                                 nil #"BOOK.*" empty? (fn [line] (re-matches #"  .*" line)) false
+            ;;                                 :start #"THE ILIAD." :end #"CONCLUDING NOTE." :toss? true
+            ;;                                 :cut-start #".*Illustration:.*" :cut-until 3) ;FAILS! 
+            ;;          "The Odyssey" ""} ;I have to get a chunk remover first to word on illustrations
             "John Milton"
-            {"Paradise-Lost" (map-text "text-files/POETRY/paradise-lost.txt" nil #"  BOOK.*" 
+            {"Paradise-Lost" (map-text "text-files/POETRY/paradise-lost.txt" nil nil #"  BOOK.*" 
                                        indented? (fn [line] (and (not-empty line) 
                                                                  (not (uppercase? line)))) false)
 
-             "Paradise Regained" (map-text"text-files/POETRY/paradise-regained.txt" 
-                                          nil #"  THE.* BOOK" indented? not-empty true)}
+             "Paradise Regained" (map-text "text-files/POETRY/paradise-regained.txt" 
+                                          nil nil #"  THE.* BOOK" indented? not-empty true
+                                          :start #"  John Milton")}
             "Herman Melville" 
             {"Moby-Dick" (map-sentences (map-text "text-files/PROSE/Moby-Dick.txt" 
-                                                  #"ETYMOLOGY." #"CHAPTER.*|Epilogue" 
+                                                  nil #"ETYMOLOGY." #"CHAPTER.*|Epilogue" 
                                                   empty? not-empty false))}
-            "James Joyce"})
+            ;; "Walt Whitman" "map leaves here"
+            ;; "James Joyce" {"Portrait of the Artist" "map here" "Ulysses" "Finnegans Wake"}
+})
+
+;broken. build a whole map-navigation system off of this. list all the keys of a text, find all the works of an author. Right now I need a way to determine if its an anonymous author, and so just a title-map, or if there's a map full of texts. 
+(defn list-texts [] 
+  (map (fn [k] (if (map? (texts k)) (list k (keys k)) k)) (keys texts)))
 
 ;FUCK THESE! I can use select-keys in one general function which will return a sub-map
 

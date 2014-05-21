@@ -1,4 +1,3 @@
-(seg bible 1 3 10)
 (seg bible 1 3 20)
 (seg bible 1 3 30)
 (seg bible 1 3 25)
@@ -498,3 +497,4 @@ pl
 )
 (subvec (into [] ff) 40 43)
 (def f "text-files/PROSE/JOYCE/Finnegans-Wake.txt")
+quit

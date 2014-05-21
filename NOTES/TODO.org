@@ -7,8 +7,6 @@
 ***** TODO search by "contains", grammer, subject
 **** TODO deal with texts containing a lot of junk, like PDFs
      detect repeated lines like title/author headers
-**** TODO analyze text to determine how to map
-     check repeating patterns that aren't sentences. check justification
 **** TODO Build UI for navigating/comparing.
      come up with a lot of shortcuts. 
      use printf or format for console comparison. Line things up like this.
@@ -27,7 +25,7 @@
 **** TODO Map Shakespeare
 ***** first, split up the file into 1 for each play so I dont have to do 5th index. easy way out?
 **** TODO add metadata to maps
-     things like: section-mapped? line/sentence-based segments.
+     things like: section-mapped? line/sentence-based segments. author, title, 
 **** TODO mark data by time, train in chronological order
 **** TODO read text to find the proper index count so it isnt static
      might mess with retrieval functions since seg won't asways take same # of args
@@ -45,8 +43,13 @@
 **** TODO Write regex that gives you an expression that solves the two cases you want to match.
 **** TODO REGEX dictionary. Give me all the words containing an A, an X, and a G. 
      So useful.
-**** TODO  REMOVE CHUNKS
-     
+     use re-seq
+**** TODO Detect how to format. 
+     Do this by building a raw corpora of lines, then see if there are similar patterns in between lines it can be a canditate; get a count of how many similarities there are to "CHAPTER ONE" or something like that. 
+
+     It'd be really hard to do with whitespace, unless I'm counting sequences.
+
+     I guess it'd assume that the most frequent markers are sections, the next part, book, then volume. 
 *** FOR CONSEDERATION
 **** TODO find segments of a text! this migh be easier than the marker method. 
      deal with them as if it were a book.
@@ -57,8 +60,10 @@
 **** New map design 
      {:vols {0 {:parts {1 {:title "GEN" :sec {1 {:title "chap 1"} 2 {:title  "chap 2" :contents {1 "In the beginning"}}}}}} 1 {}}}
 **** should you be able to get the 10,000th word? Brad suggested it be mapped this way
-**** REGEX DICTIONARY
-     use re-seq
+**** attach webster difintitions to wordnet, cncluding prnunciation.
+     in fact, do this for many dictionaries, so its kind of a meta dictinary: one chrnicling definitions rather than use in society. Consider all of the variations between dictionaries.
+**** highlighting/note taking
+     When you make a note, it creates a new map of notes, with a the key of the text noted as a new key mapped to the note. When you look at an annotated text, it shows them in parallel
 *** ISSUES
 **** "quotes like this" --by me are mapped as two different sentences.
      this sucks because quotes should be considered a whole unit, or at least be contextualized
@@ -82,13 +87,32 @@
 
      it has no "produced by", this was unforeseen; give it its own start.
 
+     dont worry about the argument, just get rid of it by not mapping anything that's not indented. still would be nice to have a cut-chunk that works on arbitrary number of chunks. 
+
+     I have to figure out a way to deal with footnotes, I guess they'd be a separate book or volume
+
+**** Odyssey
+     How do I do this one and avoid the argument? It's not indented by 2 spaces like the Iliad... remove argument from text? There arent any illustrations that need to go, but that's kind of cheeting.
 **** Dictionary
      Just get keys for now to experiment with a regex dictionary.
 
      Can't use map-text for this
 
-*** 4 things to do <2014-05-17 Sat>
-    Map dictionary and build regex
-    Remove chunks
-    Add translations
-    Add title and author to the metadata of map. 
+*** 7 things to do as of <2014-05-17 Sat>
+**** fifth indexing for shakespeare, the faerie queene, chaucer
+     Then map these!
+**** Map dictionary and build regex search
+     Ponunciation is followed by the Defn: or a series of numbers. Use regex to see if its number or a defn, otherwise add it to the current definition. Use the number as a key, and if its defn, just use 1 as a key.
+     
+**** Remove chunks
+     so close! it just doesnt seem to remove up until that point, just the first thing given...
+**** Add translations
+     Hard to find something other than KJV, so use the odyssey and illiad for experiments. 
+**** Add title and author to the metadata of map.
+     Make sure to not lose that data in clear-text
+**** Make a clean corpora, list the index of each word, combine corpora.     
+**** Make n-gram models.
+**** begin wordnet, get hypernyms!
+     Later I can get all words that reduce to that hypernym, or include that hypernym in their tree. A depth could be specified. 
+**** <2014-05-20 Tue>
+     Something is going horribly wrong with mapping the bible it seems.
