@@ -188,9 +188,22 @@
 ;if there's a large gap of whitespace between two letters, cut it. 
 (defn sanitize-line [str])
 
-;useful for Shakespeare where act and scene should both increment, but are on one line. really only useful for poetry with unvariable length. 
-(defn split-line [str pat split-at]
-  "Splits every line that matches the pattern at the given positon.")
+;useful for Shakespeare where act and scene should both increment, but are on one line. really only useful for poetry with unvariable length. only works for splitting line in 2 right now. 
+(defn split-lines [text-seq pat split-at]
+  "Splits every line that matches the pattern at the given positon."
+  (loop [seq text-seq
+         new ()]
+    (let [ln (first seq)]
+      (if (empty? seq)
+        (if (re-matches pat ln)
+          (let [twane (string/split ln)]
+            (recur (rest seq) (conj new (first twane) (second twane))))
+          (recur (rest seq) (conj new (first seq))))
+        new))))
+
+;use on latin dict to separate entries which are each two lines. 
+(defn insert-every-nth-line [text-seq addition n]
+  )
 
 ;just pass in nil for cut-start and until if you dont need anything cut
 (defn clear-text [text-path start end toss? cut-start until]
@@ -459,6 +472,7 @@ the str matches the pattern, or it returns function applied to str."
 ))))))
 
 ;so some words are not a blank apart, this is a problem. maybe check if last char is a period? it its a blank line or ends with a peiod, then map. make sure this is an okay assumtion. if the count of ending peiods is the same as the number of entries, then it's probably safe. revise this by ignoring linebreaks, and mapping/starting a new entry only when a sentence-end? in found. 
+;ignore lines that start with a number if there is no entry, this is a problem for agricola
 (defn map-dictionary-latin []
   (with-open [rdr (io/reader "text-files/cassells-latin.txt" :encoding "UTF-8")]
     (loop [seq (clear-text  "text-files/cassells-latin.txt" #"Latin-English dictionary.*"
@@ -649,7 +663,6 @@ the str matches the pattern, or it returns function applied to str."
 ;==========================================================================================
 ;==========================================================================================
 
-s or works.
 ;way too slow to do all of these, just write it somewhere. this should really be a function map-all-texts
 (def texts {
             ;; "Bible" (map-bible)
