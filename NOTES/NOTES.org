@@ -14,3 +14,21 @@
     should I give this up and find an easier way to use text data. look into xml, 
 but it isn't as ubiquitous.
 *** look into deftype and defrecord
+** Motivation
+*** a technology reflects the values of a society 
+    the internet is so sorely lacking in a unified format for text documents, especially one where texts are formatted to be used rather than merely read in a web browser. Not only does it lack this format, but it lacks easy access to texts, and what access there is is often shoddy and half-baked (take for example the "Complete Shakespeare" found on Gutenberg which lacks all of the poems except the Sonnets; this is the only common collection found online, and is passed around on Archive.org and other cites; its like no one ever actually checked to make sure it did contain everything, and if they did, they didn't find the lack a problem). 
+    Society needs a way to interact with texts in a consistent manner. It should be a learned skill that can be applied from one text to another. Texts are also formatted exclusively for the Internet, in a rigid way that tries to copy the experience of reading on paper. This causes the wonky formatting, making interaction with the text beyond reading very difficult.
+*** We need a way to compare texts easily; this requires a universal format.
+    Professors know how to interact with a text, scouring indices, citations, etcetera, but this requires a) access to a wide array of material, and b) shifting between many physical copies. This is tremendouly easier to do online, yet there has been no implementation to make this easier (even our search function assumes you know the exact format of your target; it would be much better to search using regex). 
+*** There is a deficit in materials available
+    Partially this is due to copywright, but it is also troubling that students lack access to a tremendous amount of information. The Faerie Queene is long out of copywright, but there is only one version available online; this is the case for numerous texts. Why is the only Brittanica students have access to an edition from 1911, the only unabridged dictionary available lacks a definition for television.
+*** there is no community
+    Communities flourish around central tenets and technologies, uniting to achieve similar goals and engage in discourse towards these ends, but this is hard to achieve with documents scatterred in many different archives, many behind paywalls. 
+*** Content is almost always second-rate
+    Who wants to read a faded crackly tan copy of an ancient book, page by page, with no search function?
+*** People are cut off from content
+    This is an absurd reality of modern society where I have access to a dizzying amount of content available, but is often challenging to find. There should not be texts only available in a few pricey editions on Amazon, and even my library lacks many books I've searched for. There is no reason that content be tied to location. America needs its Library of Alexandria, and that requires a wealth of content, clearly organized and formatted, easily found and accessed.
+*** Failed attempts
+    Google Books failed and here's an example of that failing. Looking at the World of the Imagination by Eva Brann, there is no preview available, but under the list of different editions, some are available.
+*** There are swaths of academic writings laying dormant
+    Access to these files is essentially restricted to those who have access through their university. It is unlikely that many of these documents will ever be read, and I doubt that the writer is actually receiving compensation for their decades old work (look into this). It would be far better to offer it up for free where it can be accessed by anyone with a passing interest rather than the priveleged and dedicated scholar; after all, distribution of information is the goal of the writer, and it is pointless to have some specialized text, already doomed to obscurity at the moment of its conception to collect dust in some database. 

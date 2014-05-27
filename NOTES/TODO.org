@@ -76,9 +76,16 @@
     Ulysses (what's wrong with current map again? that's right, two lines mark a new part! but there are other occurences where it does not! ugh. wait, that was gutenbergs, another uses ***** which is so much better, sometimes uses fewer to denote a change in character in that one episode.)
     
     Finnegans Wake (remove those copywright chunks between chapters)
-    Fairie Queene (strip out the title at top of each page)
     The Divine Comedy (include both translations)
 
+**** Fairie Queene (strip out the title at top of each page)
+     This copy is so fucked. I hate this shit. There are weird markings like "TM" (WTF!?), so cut these, and the text adds spaces between the first two letters at beginning of canto. 
+     PDFminer doesnt help cause it adds a blank line between the start of a canto and the rest of it. There might be cause to map poetry by mapping a certain number of lines before increasing the count, but it'd require a bit of retooling. 
+     I could do something like remove all single lines, then add them in every 8 lines or something. Watch out for these things though: cantos are one line, arguments are 4, and titles are variable. 
+**** Shakespeare
+     Problem with indentation, and multiple markers, find a may to normalize it, so that first line is always indented, or only 2 spaces deep. 
+     
+     0 indexing is a little odd, not just here, but in general. Here the first volume is 1, the first act is 1, but the first scene is 0. Maybe I could increment both, but that seems like trouble; I could edit the text and split them up. There may be a bigger problem with 0 indexing though... look into it since its been a constant weakness of mine. 
 **** Cantebury Tales (unforeseen complication will arise)
      I can use the weird gutenberg one with lots of <2> and experiment with adding footnotes and translations, but do I tie it to line, or associate a new key, which is the word its tied to, thus the sentence contains a key which is linked to a definition.
 
@@ -99,13 +106,8 @@
      Can't use map-text for this
 
 *** 7 things to do as of <2014-05-17 Sat>
-**** fifth indexing for shakespeare, the faerie queene, chaucer
-     Then map these!
 **** Map dictionary and build regex search
-     Ponunciation is followed by the Defn: or a series of numbers. Use regex to see if its number or a defn, otherwise add it to the current definition. Use the number as a key, and if its defn, just use 1 as a key.
-     
-**** Remove chunks
-     so close! it just doesnt seem to remove up until that point, just the first thing given...
+     Ponunciation is followed by the Defn: or a series of numbers. Use regex to see if its number or a defn, otherwise add it to the current definition. Use the number as a key, and if its defn, just use 1 as a key.     
 **** Add translations
      Hard to find something other than KJV, so use the odyssey and illiad for experiments. 
 **** Add title and author to the metadata of map.
@@ -114,5 +116,4 @@
 **** Make n-gram models.
 **** begin wordnet, get hypernyms!
      Later I can get all words that reduce to that hypernym, or include that hypernym in their tree. A depth could be specified. 
-**** <2014-05-20 Tue>
-     Something is going horribly wrong with mapping the bible it seems.
+
