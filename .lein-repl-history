@@ -1,6 +1,3 @@
-(seg bible 1 3 30)
-(seg bible 1 3 25)
-(seg bible 1 3 0)
 (sec bible 1 4)
 (sec bible 1 5)
 (sec bible 1 6)
@@ -498,3 +495,6 @@ pl
 (def f "text-files/PROSE/JOYCE/Finnegans-Wake.txt")
 quit
 exit
+quit
+(re-matches nil "hi")
+quit

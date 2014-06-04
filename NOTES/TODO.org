@@ -2,11 +2,8 @@
 ** TEXTS
 *** TO DO
 **** TODO read maps from files
-**** TODO allow optional index of length 5? use nesting?
 **** TODO search for phrase in one or more texts
 ***** TODO search by "contains", grammer, subject
-**** TODO deal with texts containing a lot of junk, like PDFs
-     detect repeated lines like title/author headers
 **** TODO Build UI for navigating/comparing.
      come up with a lot of shortcuts. 
      use printf or format for console comparison. Line things up like this.
@@ -14,7 +11,6 @@
 	 htnao hteno assssr,c.p mntsntogr ";htneoas"	htneoas ahhoh ehho ah o
 	 aoeuhnaoseunonuh ao a o b sabs ;r u baoeu	htnasoeutnhaoesnuthaoeu
     so that the liked text begins where it's referenced, then continues through a certain point, so you could say you only want the context of the line, or the rest of the chapter.
-**** TODO map websters dict
 **** TODO word hyphenation/syllabification
      what are the difeerences? use split to get vector of syllables to count.
 **** TODO begin using wordnet to find meaning
@@ -22,13 +18,9 @@
 **** TODO Markov generator
     this leads to an advertisement generator. use wordnet! something like 
 "you are a attribute." "Be a concept." "intensifier quality"
-**** TODO Map Shakespeare
-***** first, split up the file into 1 for each play so I dont have to do 5th index. easy way out?
 **** TODO add metadata to maps
      things like: section-mapped? line/sentence-based segments. author, title, 
 **** TODO mark data by time, train in chronological order
-**** TODO read text to find the proper index count so it isnt static
-     might mess with retrieval functions since seg won't asways take same # of args
 **** TODO expand map to go by sentence, or generate a new one from regular.
      need for connecting words to definitions or annotations, like in Finnegan's wake.
 **** TODO POETRY AID
@@ -50,34 +42,31 @@
      It'd be really hard to do with whitespace, unless I'm counting sequences.
 
      I guess it'd assume that the most frequent markers are sections, the next part, book, then volume. 
+**** TODO highlighting/note taking
+     When you make a note, it creates a new map of notes, with a the key of the text noted as a new key mapped to the note. When you look at an annotated text, it shows them in parallel
+**** TODO Easy user interaction
+     Since the index is always 5 long, the user needs a way to interact with the text as if the index is only as long as it is full. [0 0 1 1 1] should be treated like [1 1 1] by the user. It still should be spoken of though with part as the 1st. Maybe just include meta-data that explains what the largest unit is. Fetch will require them to put in {0 0, 1 0, 2 1, ...} to access the first part of a tri-index. They should be able to treat it like 2 in the first funtional index. 
+
+     THis also includes having an easy way to access files other than typing the whole thing out. 
 *** FOR CONSEDERATION
-**** TODO find segments of a text! this migh be easier than the marker method. 
-     deal with them as if it were a book.
-**** dont clean up a string until that data has been used in all mapping
-**** TODO !! write separate functions to go through and map in small steps.
-     this would allow for more general mapping, like grabbing all the chapters, or by each word. 
-     might involve doing maps like {:vol {:prt {:chap {:seq ["a" "x" "c" "."]}}}} and these words are concatenated along with puntuation to form the whole sequence, adding spaces in between each (make sure to handle -, " and such) and that makes since, since a vec is a seq I think. I can already do this though. how to keep efficient. You should be able to just ask for the 4000th word, and it'll tell you where in the text it is. I need a better way to split up sentences than the tokenizer, it's way too slow (but then again, if the map is saved it might not matter).
 **** New map design 
      {:vols {0 {:parts {1 {:title "GEN" :sec {1 {:title "chap 1"} 2 {:title  "chap 2" :contents {1 "In the beginning"}}}}}} 1 {}}}
 **** should you be able to get the 10,000th word? Brad suggested it be mapped this way
-**** attach webster difintitions to wordnet, cncluding prnunciation.
+**** attach webster difintitions to wordnet, cncluding pronunciation.
      in fact, do this for many dictionaries, so its kind of a meta dictinary: one chrnicling definitions rather than use in society. Consider all of the variations between dictionaries.
-**** highlighting/note taking
-     When you make a note, it creates a new map of notes, with a the key of the text noted as a new key mapped to the note. When you look at an annotated text, it shows them in parallel
 *** ISSUES
 **** "quotes like this" --by me are mapped as two different sentences.
      this sucks because quotes should be considered a whole unit, or at least be contextualized
-**** sometimes consecutive linebreaks mean something. dont fight it.
-***** this in the case in Finnegan's Wake where each sentence is 1 line apart but paragraphs are 2, parts 3
-**** map sentences doesnt combine philoso-phy into one word. 
-   
+**** map sentences doesnt combine philoso-phy into one word.
+**** Its slower to load the map than to do the mapping... :(
+**** Why does it map an empty line, even when I've told it not to, but only the last one. 
 *** TEXTS TO MAP
 
-    Ulysses (what's wrong with current map again? that's right, two lines mark a new part! but there are other occurences where it does not! ugh. wait, that was gutenbergs, another uses ***** which is so much better, sometimes uses fewer to denote a change in character in that one episode.)
+****    Ulysses 
+	(what's wrong with current map again? that's right, two lines mark a new part! but there are other occurences where it does not! ugh. wait, that was gutenbergs, another uses ***** which is so much better, sometimes uses fewer to denote a change in character in that one episode.)
     
-    Finnegans Wake (remove those copywright chunks between chapters)
-    The Divine Comedy (include both translations)
-
+**** Finnegans Wake (remove those copywright chunks between chapters)
+**** The Divine Comedy (include both translations)
 **** Fairie Queene (strip out the title at top of each page)
      This copy is so fucked. I hate this shit. There are weird markings like "TM" (WTF!?), so cut these, and the text adds spaces between the first two letters at beginning of canto. 
      PDFminer doesnt help cause it adds a blank line between the start of a canto and the rest of it. There might be cause to map poetry by mapping a certain number of lines before increasing the count, but it'd require a bit of retooling. 
@@ -86,6 +75,24 @@
      Problem with indentation, and multiple markers, find a may to normalize it, so that first line is always indented, or only 2 spaces deep. 
      
      0 indexing is a little odd, not just here, but in general. Here the first volume is 1, the first act is 1, but the first scene is 0. Maybe I could increment both, but that seems like trouble; I could edit the text and split them up. There may be a bigger problem with 0 indexing though... look into it since its been a constant weakness of mine. 
+
+     Needs to also put the description somewhere consistent, I guess at [1 1 1 0 1] since scene title is at [1 1 1 0 0], what about the scene of the play at beginning of each, usually marked with SCENE: with the description on that line or the next; usually follows dramatis personae. 
+
+     Cut the lines that aren't ACT X SCENE 1. ACT X SCENE 2 should just be SCENE 2.
+     
+     Maybe normalize the numbers/roman numerals. 
+         
+     Antony and cleopatra has WEIRD act/scene markers. The Scenes are getting mapped despite the (not (match)) part. Write a funtion to remove these ugly lines. Cut-chunk should take a vector of things to cut.
+     
+     The Comedy of Errors isn't notched because of course it isnt! Here the beginnig is to the left and the line is notched. ugh. I need a function that justifies all the text. So if it isnt all caps, and doesnt match certain parameters, it gets notched. If it's already notched and doesnt begin with a characters name, then it'll be indented. Also it's mapping a guys name one time... DROMIO OF SYRACUSE. So I need something that'll push text over, but not for the whole thing, just for a segment; I'll use a start and stop pattern. 
+
+     Some Dramatis Personae are all caps... how should I solve this? analyze text. 
+
+     Titles are sometimes listed twice! FUCK. As are things like epilogues. 
+
+     UGH! it maps lowercase things as a title, I have no idea why. But sometimes it doest get the actual all-caps part! WTF!?!?!?! Why doesnt it count the next line, Why Lear King of Britain, but not King of France? How could such a thing even happen...
+
+     I need a way when splitting the text up that I grab the poems at the beginning and at the end. 
 **** Cantebury Tales (unforeseen complication will arise)
      I can use the weird gutenberg one with lots of <2> and experiment with adding footnotes and translations, but do I tie it to line, or associate a new key, which is the word its tied to, thus the sentence contains a key which is linked to a definition.
 
@@ -105,15 +112,35 @@
 
      Can't use map-text for this
 
-*** 7 things to do as of <2014-05-17 Sat>
+*** 10 things to do as of <2014-05-29 Thu>
+**** MAP TEXTS, clean up shakespeare.
+     I need to incorporate split-lines to do this. Need to map the faerie queene also, and Samson Agonist.
 **** Map dictionary and build regex search
      Ponunciation is followed by the Defn: or a series of numbers. Use regex to see if its number or a defn, otherwise add it to the current definition. Use the number as a key, and if its defn, just use 1 as a key.     
 **** Add translations
      Hard to find something other than KJV, so use the odyssey and illiad for experiments. 
 **** Add title and author to the metadata of map.
      Make sure to not lose that data in clear-text
+
+     Or don't put it in meta-data. I might want to avoid putting the book title, or chapter titles as an entry, but give it something like :title :contents
+
+     Just enter it manually, it's not worth the trouble and erraticism. 
 **** Make a clean corpora, list the index of each word, combine corpora.     
 **** Make n-gram models.
 **** begin wordnet, get hypernyms!
-     Later I can get all words that reduce to that hypernym, or include that hypernym in their tree. A depth could be specified. 
-
+     Later I can get all words that reduce to that hypernym, or include that hypernym in their tree. A depth could be specified.
+**** Save and load maps! 
+     to one file?
+**** Start adding notes and highlighting
+     Each map will have :author :title :text and :notes. Notes have the same key as the text they're attached to. 
+     How do I handle highlighting? Create a vector of keys I think.
+**** Map dictionary to get syllable count, then measure poetic meter. 
+*** 4 THINGS to start <2014-06-02 Mon>
+**** save and load maps
+     Save each author to their own file, this way they don't have to be accessed all at once. 
+**** Incorporate notes, save/load. 
+**** finish shakespeare
+**** Suppress evaluation of the maps until they are called up. 
+     Write the maps as lists, then write an aceess function that looks up the list, then evals it, replacing the list with the evalled form. 
+*** Methodology problem
+    The maps are written in a way to make sense to me as a user, but it might not be the best way programatically.

@@ -27,7 +27,7 @@
               char))
 
 (defn digit? [ch]
-  (if (some #{ch} '(\1 \2 \3 \4 \5 \6 \7 \8 9 \0))
+  (if (some #{ch} '(\1 \2 \3 \4 \5 \6 \7 \8 \9 \0))
     true
     false))
 
@@ -135,6 +135,9 @@
 
 (defn complete-sentence? [str]
   (and (capitalized? str) (sentence-end? str)))
+
+;this is a prett version of normal split. It'll retain the char where the split occurs, giving it to the first segment, and will trim the spaces off of the second segment. 
+(defn string-split [str split-at])
 ;=============================================
 ;FILES
 ;=============================================

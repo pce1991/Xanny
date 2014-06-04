@@ -83,3 +83,8 @@
 * Projects
 ** break up sentences containing no spaces
 ** spelling correction
+** Convert a word to phonetic spelling. 
+** LATIN
+*** Construct verbs to be used in a sentence: from the root add ending for tense/mood
+*** Construct nouns from root and give it as a case based on its gender/declension
+*** Translate latin, or at least determine the lexical meaning of something in genitive, or active imperfect.
