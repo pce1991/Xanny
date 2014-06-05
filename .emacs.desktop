@@ -1,0 +1,106 @@
+;; -*- mode: emacs-lisp; coding: emacs-mule; -*-
+;; --------------------------------------------------------------------------
+;; Desktop File for Emacs
+;; --------------------------------------------------------------------------
+;; Created Thu Jun  5 13:55:20 2014
+;; Desktop file format version 206
+;; Emacs version 24.3.1
+
+;; Global section:
+(setq desktop-missing-file-warning nil)
+(setq tags-file-name nil)
+(setq tags-table-list nil)
+(setq search-ring '("cleave-li" "push-li" "shakespear" "repla" "rest" "push-l" "shakespear" "map-te" "map-text" "remove-dupl" "not" "remove-d" "shakespe" "remove-du" "collaps" "remove-"))
+(setq regexp-search-ring nil)
+(setq register-alist nil)
+(setq file-name-history '("/Users/PCEye/Projects/Xanny/NOTES/NLP-Notes.org" "/Users/PCEye/Projects/Xanny/src/xanny/text-maps.clj" "/Users/PCEye/Writing/higher-noon-notes.org" "/Users/PCEye/Writing/may-2014.org" "/Users/PCEye/Projects/Xanny/NOTES/TODO.org" "/Users/PCEye/Writing/june-2014.org" "/Users/PCEye/Projects/Xanny/src/xanny/utilities.clj" "/Users/PCEye/Projects/Xanny/src/xanny/quiz.clj" "/Users/PCEye/Projects/Xanny/src/xanny/texts.clj"))
+
+;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 206
+  "/Users/PCEye/Projects/Xanny/NOTES/TODO.org"
+  "TODO.org"
+  'org-mode
+  '(visual-line-mode global-visual-line-mode)
+  12543
+  '(12353 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-unix) (truncate-lines)))
+
+(desktop-create-buffer 206
+  "/Users/PCEye/Projects/Xanny/src/xanny/texts.clj"
+  "texts.clj"
+  'clojure-mode
+  '(visual-line-mode global-visual-line-mode rainbow-delimiters-mode auto-complete-mode paredit-mode cider-mode)
+  13983
+  '(11384 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . undecided-unix) (truncate-lines)))
+
+(desktop-create-buffer 206
+  "/Users/PCEye/Projects/Xanny/src/xanny/utilities.clj"
+  "utilities.clj"
+  'clojure-mode
+  '(visual-line-mode global-visual-line-mode rainbow-delimiters-mode auto-complete-mode paredit-mode cider-mode)
+  4885
+  '(4718 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . undecided-unix) (truncate-lines)))
+
+(desktop-create-buffer 206
+  "/Users/PCEye/Projects/Xanny/NOTES/NLP-Notes.org"
+  "NLP-Notes.org"
+  'org-mode
+  '(visual-line-mode global-visual-line-mode)
+  3987
+  '(3669 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . utf-8-unix) (truncate-lines)))
+
+(desktop-create-buffer 206
+  "/Users/PCEye/Writing/higher-noon-notes.org"
+  "higher-noon-notes.org"
+  'org-mode
+  '(visual-line-mode global-visual-line-mode)
+  1
+  '(19260 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . undecided-unix) (truncate-lines)))
+
+(desktop-create-buffer 206
+  "/Users/PCEye/Writing/june-2014.org"
+  "june-2014.org"
+  'org-mode
+  '(visual-line-mode global-visual-line-mode)
+  916
+  '(1 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . utf-8-unix) (truncate-lines)))
+
+(desktop-create-buffer 206
+  "/Users/PCEye/Projects/Xanny/src/xanny/quiz.clj"
+  "quiz.clj"
+  'clojure-mode
+  '(visual-line-mode global-visual-line-mode rainbow-delimiters-mode auto-complete-mode paredit-mode cider-mode)
+  2131
+  '(1754 nil)
+  nil
+  nil
+  '((indent-tabs-mode) (buffer-file-coding-system . undecided-unix) (truncate-lines)))
+
+(desktop-create-buffer 206
+  "/Users/PCEye/Writing/may-2014.org"
+  "may-2014.org"
+  'org-mode
+  '(visual-line-mode global-visual-line-mode)
+  977
+  '(102143 nil)
+  nil
+  nil
+  '((buffer-file-coding-system . utf-8-unix) (truncate-lines)))
+

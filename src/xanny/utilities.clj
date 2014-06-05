@@ -92,6 +92,8 @@
 
 ;include one to check if its just indented twolines, or maybe check if its totally left justified
 
+;these are both TOO SLOW! use regex instead!
+
 ;justified is just 1 > than indented
 (defn justified? [line]
   (if (>= (count line) 5)
@@ -140,7 +142,8 @@
 ;this is a prett version of normal split. It'll retain the char where the split occurs, giving it to the first segment, and will trim the spaces off of the second segment. 
 (defn string-split [str split-at])
 
-(defn re-matches-all [pats str])
+(defn re-matches-all [pats str]
+  (every? (fn [pat] (re-matches pat str)) pats))
 
 ;returns the first match
 (defn re-matches-some [pats str]
@@ -157,6 +160,13 @@
       (if (re-matches (first pats) str)
         (first pats)
         (recur (rest pats))))))
+
+;split can bu used to get the rest, but It'll fail if the pattern retains the .* stuff
+;if the user doesnt suplly them as regex, but I do that here, then they're just strings and can be modified. 
+;DUH, str does what I need. Problem solved, just split it where things like . .* + etcetera occur. 
+(defn re-rest [pat str]
+  "If there is a match it'll return everything that occurs after the supplied pattern. #ACT .* matched to ACT II will return II."
+)
 ;=============================================
 ;FILES
 ;=============================================

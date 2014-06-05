@@ -51,14 +51,6 @@
 ;EDITING AND FORMATTING TEXTS
 ;==========================================================================================
 ;==========================================================================================
-;Really needs to be solid if I'm ever going to convert my library from page to PDF to .txt
-
-
-;this will be most useful for texts converted from PDFs I imagine. will also be used to
-;remove gutenberg stamps, licenses, and other crap. 
-;removes all gutenberg shit!
-
-;make sure files are in UTF-8 formatting.
 
 (defn trim-blanks [text-seq] 
   "removes blankline from the front so title is always first"
@@ -68,12 +60,6 @@
       seq)))
 
 ;rewrite these with vectors: less reversing. 
-
-;these give null pointers when the start or end isnt found. fix it
-
-;these are reversing it if there are no start and end markers!
-
-;returning empty on some stuff
 
 ;signal an error if empty
 ;allow an option to toss the ending as in gutenberg, or to save it like in the bible.
@@ -105,9 +91,6 @@
             (recur (rest seq)))))))
 
 
-;count consecutive line breaks and remove them. verify this works.
-;isnt reducing everything to single line breaks. cant handle uneven number of lines.
-;change this to remove chunks of a certain length and replace them with a cleaner marker.
 (defn cut-consecutive-lines [text-seq]
   "reduces consecutive blanklines to a single one, thus avoidung incrementing sections several times it a text."
   (loop [seq text-seq
@@ -127,8 +110,6 @@
 
 ;sometimes consecutive lines mean something, so in that situation I should go through and delete them, but place
 ;a marker to show that there's a new part, section, whatever it indicates.
-;this will be useful in marking up a text
-;DOH, finns wake has a different problem, so make this more generally something to replace a chunk of text
 (defn make-chunks-markers [text-seq in-a-row marker] 
   "takes a string, and replaces a seq of blanklines with it to use in marking up a text."
   (loop [seq text-seq
@@ -140,13 +121,7 @@
                  (conj new-seq marker))
           :else (recur (rest seq) (conj new-seq (first seq))))))
 
-;clear out the top title and page number from a PDF text and such things. 
-;this would be more flexible if I have an end marker, or "not" marker, that keeps cutting until a pattern indicating
-;a return to normal text is found.
-;make more general to work with any list, maybe feed it a function instead of start.
-;again, it'd be more general if I cound remove multiple chunks, like the argument, and the illustrations it Illiad.
-
-;it'd be useful if this could either place o blank line where the chunk was, or remove it entirely. 
+;it'd be useful if this could either place a blank line where the chunk was, or remove it entirely. 
 (defn cut-chunk [text-seq start until]
   "cuts a point at the first match, and extending a certain number of lines, or until a matching regex pattern is found. "
   (if start
@@ -166,9 +141,8 @@
           (recur (rest seq) (conj new-seq (first seq))))))
     text-seq))
 
-;sanitize texts by removing lots of whitespace fram a line, a common error in PDF conversion it seems. 
-
 (defn lonely-lines [text-seq]
+  "This removes all isolated empty-lines, useful in texts with double-spacing."
   (loop [seq text-seq
          new-seq ()]
     (cond (empty? seq)
@@ -197,12 +171,15 @@
             (recur (rest seq) (conj new line))))
         (reverse new)))))
 
+;;; use in shakespeare where stage-directions should be one line. give several predicates like justified and left-justified so it handles both instances without incrementing the section marker. 
+(defn fold-lines [text-seq predicate]
+  "This will fold the previous line into the one above it if there is not a blankline between them, assuming that both lines satisfy the predicate.")
+
 ;if there's a large gap of whitespace between two letters, cut it. 
 (defn sanitize-line [str])
 
-;useful for Shakespeare where act and scene should both increment, but are on one line. really only useful for poetry with unvariable length. only works for splitting line in 2 right now. 
-;doesn't work? or doesnt in shakespeare it seems... 
 ;adds a nil if it can't split the line, that's no good. 
+;let it take a map of patterns and split-at so it can do multiple splits.
 (defn cleave-lines [text-seq pat split-at]
   "Splits every line that matches the pattern at the given positon. Only use on lines you want in two parts, no more."
   (if (not (or (nil? pat) (nil? split-at)))
@@ -220,9 +197,10 @@
           (reverse new))))
     text-seq))
 
-;this is useful for getting rid of superfluos ACT I SCENE 4, when I only need to know the act the first time it appears. 
+;this is useful for getting rid of superfluos ACT I SCENE 4, when I only need to know the act the first time it appears. incorporate into clear-text. 
+;make this work for multiple patterns
 (defn lop-lines
-  "Deletes the target pattern in a string if it matches the general, but not the specific patter."
+  "Deletes the target pattern in a string if it matches the general, but not the specific pattern. Target is a pattern to split by."
   [text-seq general-pat specific-pat target]
   (if (not (or  (nil? general-pat) (nil? specific-pat) (nil? target))) 
     (loop [seq text-seq
@@ -237,8 +215,7 @@
         (reverse new)))
     text-seq))
 
-;use to remove duplicate patterns, like titles appearing twice. 
-;seems to really slow it down... 
+;should I also use re-matches-one to make sure that it's registering and rmoving the proper one, not just the first hit. 
 (defn remove-duplicates [text-seq pats]
   "Pat is a vector of regex patterns and it will remove duplicates for each of them."
   (if-not (empty? pats) 
@@ -256,6 +233,7 @@
     text-seq))
 
 ;made for Shakespeare where comedy of errors is left justified. Might still have problems with stage direction though, and it'll push over act and scene markers. Maybe add an optional exceptions list. 
+;modif this so it takes a map of starts and stops so it can perform multiple pushes in a single pass. 
 (defn push-lines
   "Adds n number of spaces to all lines in a seq inbetween start and stop."
   [text-seq start stop n]
@@ -272,7 +250,7 @@
                   (recur (rest seq) (conj new line) true) ;dont push the beginnig which is usually a title. 
                   (and (re-matches stop line) begun?)
                   (recur (rest seq) (conj new line) false) ;dont push the end either. 
-                  begun?
+                  (and begun? (not (empty? line))) ;dont add spaces if its an empty
                   (recur (rest seq) (conj new (string/join "" [space-chunk line])) true)
                   :else (recur (rest seq) (conj new line) begun?))))))))
 
@@ -280,24 +258,31 @@
   "Pulls away n number of spaces to all lines, unless there are < n spaces, in which case it is just trimmed."
   [text-seq start stop n])
 
+;let this take a map of regex keys and line values. Each time a key is found in the text, it's replaced with the line mapped to it. Use this in Shakespeare for replacing weird scene and act markers. The problem is that the line will have to be specific, but I want it to be general, so {#"ACT_.*" "ACT x"} So that it preserves whatever the number is. Maybe use a sentence-rest which will give me everthing after the regex pattern
+(defn replace-lines [text-seq replacements])
+
 ;use on latin dict to separate entries which are each two lines. 
 (defn insert-every-nth-line [text-seq addition n]
   "Inserts an item into the sequence every nth line."
+  
   )
 
 ;just pass in nil for cut-start and until if you dont need anything cut
 ;ugly as sin. 
-(defn clear-text [text-path start end toss? cut-start cut-until split-this split-at collapse-pat
-                  duplicate-pats push-start push-stop push-n]
+(defn clear-text [text-path start end toss? cut-start cut-until split-this split-at lop-gen lop-spec lop-split
+                  collapse-pat duplicate-pats push-start push-stop push-n]
   (push-lines 
    (remove-duplicates 
     (collapse-lines 
      (cleave-lines
-      (cut-consecutive-lines 
-       (cut-chunk 
-        (trim-back (trim-front text-path start toss?) end toss?) ;trim front is the root, converting path to seq
-        cut-start cut-until)) 
-      split-this split-at) collapse-pat)
+      (lop-lines 
+       (cut-consecutive-lines 
+        (cut-chunk 
+         (trim-back (trim-front text-path start toss?) end toss?) ;trim front is the root, converting path to seq
+         cut-start cut-until))
+       lop-gen lop-spec lop-split) 
+      split-this split-at)
+     collapse-pat)
     duplicate-pats)
    push-start push-stop push-n))
 
@@ -353,11 +338,11 @@ the str matches the pattern, or it returns function applied to str."
 
 ;add a title and author entry for the first two lines. sometimes its on one line, so split at ", by" it its there.
 
-;0 indexing is still a problem, and now I have more indices, but only an option to map or toss section, which I guess isnt much of a problem because empty? is the most common section-marker. 
+
 (defn map-text 
   [text-path volume? book? part? section? segment? map-section-marker? ;either t or f. use 1 or 0 instd
-   & {:keys [start end toss? cut-start cut-until split-this split-at collapse-pat duplicate-pats 
-             push-start push-stop push-n] 
+   & {:keys [start end toss? cut-start cut-until split-this split-at lop-gen lop-spec lop-split
+             collapse-pat duplicate-pats push-start push-stop push-n] 
       :or {start #"Produced by.*|This etext was prepared by.*"
            end #".*(?i)End of\s?(the)? Project Gutenberg.*" 
            toss? true
@@ -365,14 +350,17 @@ the str matches the pattern, or it returns function applied to str."
            cut-until nil
            split-this nil
            split-at nil
+           lop-gen nil
+           lop-spec nil
+           lop-split nil
            collapse-pat nil
            duplicate-pats nil
            push-start nil
            push-stop nil
            push-n 0}}] ;this isn't matching all
   "returns a map of the text with keywords representing part, section, and segment.s"
-  (loop [seq (clear-text text-path start end toss? cut-start cut-until split-this split-at collapse-pat
-                         duplicate-pats push-start push-stop push-n) 
+  (loop [seq (clear-text text-path start end toss? cut-start cut-until split-this split-at lop-gen lop-spec
+                         lop-split collapse-pat duplicate-pats push-start push-stop push-n) 
          map {}
          volume 0
          book 0
@@ -556,8 +544,6 @@ the str matches the pattern, or it returns function applied to str."
             (fn [line] (and (not (empty? line)) (not (newline? line))))
             true :start nil :end nil))
 
-;map shakespeare. split the text up into several sequences, then map map-text over them.
-
 
 (defn map-dictionary []
   "returns a map with keys tied to seqs containing pronunciation key value vectors"
@@ -578,7 +564,7 @@ the str matches the pattern, or it returns function applied to str."
 (defn map-dictionary-latin []
   (with-open [rdr (io/reader "text-files/cassells-latin.txt" :encoding "UTF-8")]
     (loop [seq (clear-text  "text-files/cassells-latin.txt" #"Latin-English dictionary.*"
-                            #"ENGLISH-LATIN.*" true nil nil nil nil nil nil nil nil nil)
+                            #"ENGLISH-LATIN.*" true nil nil nil nil nil nil nil nil nil nil nil nil)
            map {}
            word nil
            entry []]
@@ -792,10 +778,8 @@ the str matches the pattern, or it returns function applied to str."
                                              :cut-start #".*PUBLI VERGILI MARONIS" :cut-until 3)}
             "Beowulf" '(map-text "text-files/POETRY/beowulf.txt" nil nil nil nil not-empty false
                                 :start nil :end nil)
-                                        ;"Chaucer" {}
-
-            ;; ;this fails on stage directions, locale and action of scene, and sometimes indent means characters line, other times it means a regular sonnet line. map prose on it since there are some prose parts, it'll just consider most stuff verse. need to add a lot of nots to the volume marker, shouldn't count scene, or ACT, or fix this in map-texts? MAKE SURE stage directions are getting captured. WHY is it mapping "Lear, King of..." and "TIMON of Athens" so weird. It seems to happen right after the title each time though, and each one is heavily indented
-;OKAY" WTF, notched and indented? dont watter it seems. Why will it map those even when they're false!?!?!
+            "Chaucer" {}
+;            I dont think this is mapping segments and secions right. 
             "Shakespeare" {"Plays" '(map-text "text-files/shakespeare/shakespeare.txt" 
                                              (fn [ln] (and (uppercase? ln) (not (notched? ln))
                                                            (not (or (re-matches #"ACT.*" ln)
@@ -805,19 +789,33 @@ the str matches the pattern, or it returns function applied to str."
                                                                     (re-matches #".*DRAMATIS PERSONAE.*" ln)
                                                                     (re-matches #"INDUCTION.*" ln)
                                                                     (re-matches #"SC_.*" ln)
-                                                                    (re-matches #".*Persons in the Induction" ln) ;this shouldnt be necessary! it isnt all-caps!
                                                                     )))) 
-                                             #"ACT .*" #" Scene .*|.*SCENE .*|.*PROLOGUE.*|.*EPILOGUE.*|.*INDUCTION.*" ;this needs to ignore caps
-                                             (fn [line] ;(justified? line) ;kills heap space somehow
-                                               (and  (not (indented? line))  (re-matches #"  .*" line)))
-                                             indented? true :start #"1603" :toss? true 
+                                             #"ACT .*|Act .*" 
+                                             #"\ ?Scene .*|.*SCENE .*|.*PROLOGUE.*|.*EPILOGUE.*|.*INDUCTION.*" 
+                                             
+                                             (fn [line]
+                                               (or (and  (not (indented? line)) (notched? line))
+                                                   ;get stage directions here, but they arent always justified...
+                                                   ;if its left or right justified it could be a stage direction, watch this ovrewriting something thought. this causes problems where a mult-line direction is counted as several sections. collapse-lines. I want it to collapse two left-jutifed lines that arens separated by a blankline.
+                                                   (or  (justified? line) (left-justified? line))
+                                                   ))
+                                             not-empty
+                                        ;notched? ;used to be indented?... 
+                                             true ;dont map blank-lines
+                                             :start #"1603" :toss? true 
                                              :cut-start #"<<THIS ELECTRONIC VERSION OF THE COMPLETE WORKS OF WILLIAM"
                                              :cut-until 7
-                                             :split-this #"ACT [I II III IV V].*"
+                                             ;I need to split stage directions from lines as well. 
+                                             :split-this #"(?i)ACT[\ \_][I II III IV V].*" ;split the odditiets too.
                                              :duplicate-pats [#"THE COMEDY OF ERRORS" #"THE TEMPEST"] ;others?
                                              :split-at #"\. "
+                                             ;lop should work now that the spec and split patterns are right. 
+                                             :lop-gen #"(?i)ACT .*" 
+                                             :lop-spec #"(?i)ACT [I IV V]+\.? SCENE [1 I].*"
+                                             :lop-split #"ACT [I IV V]+\.?" ;should work now
                                              :push-start #"THE COMEDY OF ERRORS"
                                              :push-stop #"THE END" :push-n 2)
+
                            "Sonnets"  '(map-text "text-files/shakespeare.txt" nil nil nil integer-string? 
                                                 (fn [line] ;(justified? line) ;kills heap space somehow
                                                   (re-matches #"  .*" line) )
@@ -862,3 +860,8 @@ the str matches the pattern, or it returns function applied to str."
      (def texts (assoc texts author (eval (texts author)))))
   ([author text]  
      (def texts (assoc-in texts [author text] (eval ((texts author) text))))))
+
+
+(defn toc [text-map]
+  ;"Finds the most outer index and then lists each of it. Can be nested to give you book and part like for the bible."
+  )
