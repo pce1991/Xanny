@@ -84,6 +84,7 @@
     (= (subs str 0 4) "    ")
     false))
 
+;consider this returning false if it's wore than two spaces over.
 (defn notched? [str]
   (if (>= (count str) 2)
     (= (subs str 0 2) "  ")
@@ -138,6 +139,24 @@
 
 ;this is a prett version of normal split. It'll retain the char where the split occurs, giving it to the first segment, and will trim the spaces off of the second segment. 
 (defn string-split [str split-at])
+
+(defn re-matches-all [pats str])
+
+;returns the first match
+(defn re-matches-some [pats str]
+  (some (fn [pat] (re-matches pat str)) pats))
+
+;returs t if it only matches one of the patterns provided. 
+(defn re-matches-one [pats str])
+
+(defn which-matches? [patterns str]
+  "Returns the first match"
+  (loop [pats patterns]
+    (if (empty? pats)
+      nil
+      (if (re-matches (first pats) str)
+        (first pats)
+        (recur (rest pats))))))
 ;=============================================
 ;FILES
 ;=============================================

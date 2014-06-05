@@ -42,7 +42,7 @@
                   :pl {1 {:fem "-ae" :masc "-ae"}
                        2 {:masc "-i" :neut "-a"}}}})
 
-(def vowels [a e i o u])
+(def vowels ["a" "e" "i" "o" "u"])
 
 ;perfect has its own endings. 
 (def endings {:active {:sg {1 ["-o" "-m"] 2 "-s" 3 "-t"} :pl {1 "-mus" 2 "-tis" 3 "-nt"}}
@@ -59,7 +59,7 @@
 
 (def tenses {:present (make-endings ["-o" "-s" "-t" "-mus" "-tis" "-nt"]) 
              :future {1 2} ;show for each conjugation
-             :imperfect})
+             :imperfect {1 2}})
 
 ;if the ending is a vowel then replace the stem with it? 
 

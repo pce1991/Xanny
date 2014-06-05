@@ -125,22 +125,39 @@
      Or don't put it in meta-data. I might want to avoid putting the book title, or chapter titles as an entry, but give it something like :title :contents
 
      Just enter it manually, it's not worth the trouble and erraticism. 
-**** Make a clean corpora, list the index of each word, combine corpora.     
+**** Make a clean corpora, list the index of each word, combine corpora.    
+     Get corpora for each text, but also for the lot of them. 
 **** Make n-gram models.
 **** begin wordnet, get hypernyms!
      Later I can get all words that reduce to that hypernym, or include that hypernym in their tree. A depth could be specified.
 **** Save and load maps! 
      to one file?
-**** Start adding notes and highlighting
+**** Start adding notes and highlighting, and referning
      Each map will have :author :title :text and :notes. Notes have the same key as the text they're attached to. 
      How do I handle highlighting? Create a vector of keys I think.
+
+     Lines can refernce lines (or a segment map like in fetch) in other texts. Get it down to a word being mapped to every occurrence of it in every text.
 **** Map dictionary to get syllable count, then measure poetic meter. 
-*** 4 THINGS to start <2014-06-02 Mon>
+*** 5 THINGS to start <2014-06-02 Mon>
 **** save and load maps
      Save each author to their own file, this way they don't have to be accessed all at once. 
 **** Incorporate notes, save/load. 
 **** finish shakespeare
+     Find out what's going on with the lower-case volume titles! <2014-06-05 Thu>
+     Notched should disqualif some lines it actually shouldn't, but it isnt, WTF not?
+
+     Why did removing duplicates make it stop mapping taming of the shrew 
+
+     Removing the extra spacing by taming of the shrew did the trick. For whatever reason its mapping of the title when it hits an indented line, cause it cant be registering that as the proper volume title. Thats definetly the problem, so I need to pull that text over, so pull text needs a way to take multiple paterns to yank.Both times it starts going wrong at dramatis personae, and should stop pulling at SCENE: 
+
+     I know I'm losing stage directions, SCENE, stuff like that. Figure it out. 
 **** Suppress evaluation of the maps until they are called up. 
-     Write the maps as lists, then write an aceess function that looks up the list, then evals it, replacing the list with the evalled form. 
+     Write the maps as lists, then write an aceess function that looks up the list, then evals it, replacing the list with the evalled form.
+**** Clean up sentence maps
+     Has trouble combing split-lines, recognizing quotes-attributions, retaining " markers. 
+     
+     I could maybe just use collapse-lines for this. 
+
+     Are quotations all one segment? do they count as a section of their own? 
 *** Methodology problem
     The maps are written in a way to make sense to me as a user, but it might not be the best way programatically.
