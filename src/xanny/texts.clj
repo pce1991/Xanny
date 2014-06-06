@@ -171,12 +171,24 @@
             (recur (rest seq) (conj new line))))
         (reverse new)))))
 
+
+
 ;;; use in shakespeare where stage-directions should be one line. give several predicates like justified and left-justified so it handles both instances without incrementing the section marker. 
 (defn fold-lines [text-seq predicate]
-  "This will fold the previous line into the one above it if there is not a blankline between them, assuming that both lines satisfy the predicate.")
-
-;if there's a large gap of whitespace between two letters, cut it. 
-(defn sanitize-line [str])
+  "This will fold the previous line into the one above it if there is not a blankline between them, assuming that both lines satisfy the predicate."
+  (if (nil? predicate)
+    text-seq
+    (loop [seq text-seq
+           new ()
+           fold []]
+      (let [line (first seq)]
+        (cond (empty? seq)
+              (reverse new)
+              (and (predicate line) (or (empty? (second seq)) (not (predicate (second seq))))) ;if its a newline, of doesnt satisfy the predicate, then fold the lines and put in new.
+              (recur (rest seq) (conj new (cut-gaps (string/join " " (conj fold line)))) []) 
+              (predicate line)
+              (recur (rest seq) new (conj fold line)) ;messes with formatting
+              :else (recur (rest seq) (conj new line) []))))))
 
 ;adds a nil if it can't split the line, that's no good. 
 ;let it take a map of patterns and split-at so it can do multiple splits.
@@ -268,21 +280,23 @@
   )
 
 ;just pass in nil for cut-start and until if you dont need anything cut
-;ugly as sin. 
+;ugly as sin. MAKE SURE THE ORDER IS RIGHT, it'll be unpleanant otherwise.
 (defn clear-text [text-path start end toss? cut-start cut-until split-this split-at lop-gen lop-spec lop-split
-                  collapse-pat duplicate-pats push-start push-stop push-n]
+                  collapse-pat fold-pred duplicate-pats push-start push-stop push-n]
   (push-lines 
    (remove-duplicates 
-    (collapse-lines 
-     (cleave-lines
-      (lop-lines 
-       (cut-consecutive-lines 
-        (cut-chunk 
-         (trim-back (trim-front text-path start toss?) end toss?) ;trim front is the root, converting path to seq
-         cut-start cut-until))
-       lop-gen lop-spec lop-split) 
-      split-this split-at)
-     collapse-pat)
+    (fold-lines 
+     (collapse-lines 
+      (cleave-lines
+       (lop-lines 
+        (cut-consecutive-lines 
+         (cut-chunk 
+          (trim-back (trim-front text-path start toss?) end toss?) ;trim front is the root, converting path to seq
+          cut-start cut-until))
+        lop-gen lop-spec lop-split) 
+       split-this split-at)
+      collapse-pat)
+     fold-pred)
     duplicate-pats)
    push-start push-stop push-n))
 
@@ -342,7 +356,7 @@ the str matches the pattern, or it returns function applied to str."
 (defn map-text 
   [text-path volume? book? part? section? segment? map-section-marker? ;either t or f. use 1 or 0 instd
    & {:keys [start end toss? cut-start cut-until split-this split-at lop-gen lop-spec lop-split
-             collapse-pat duplicate-pats push-start push-stop push-n] 
+             collapse-pat fold-pred duplicate-pats push-start push-stop push-n] 
       :or {start #"Produced by.*|This etext was prepared by.*"
            end #".*(?i)End of\s?(the)? Project Gutenberg.*" 
            toss? true
@@ -354,13 +368,14 @@ the str matches the pattern, or it returns function applied to str."
            lop-spec nil
            lop-split nil
            collapse-pat nil
+           fold-pred nil
            duplicate-pats nil
            push-start nil
            push-stop nil
            push-n 0}}] ;this isn't matching all
   "returns a map of the text with keywords representing part, section, and segment.s"
   (loop [seq (clear-text text-path start end toss? cut-start cut-until split-this split-at lop-gen lop-spec
-                         lop-split collapse-pat duplicate-pats push-start push-stop push-n) 
+                         lop-split collapse-pat fold-pred duplicate-pats push-start push-stop push-n) 
          map {}
          volume 0
          book 0
@@ -564,7 +579,7 @@ the str matches the pattern, or it returns function applied to str."
 (defn map-dictionary-latin []
   (with-open [rdr (io/reader "text-files/cassells-latin.txt" :encoding "UTF-8")]
     (loop [seq (clear-text  "text-files/cassells-latin.txt" #"Latin-English dictionary.*"
-                            #"ENGLISH-LATIN.*" true nil nil nil nil nil nil nil nil nil nil nil nil)
+                            #"ENGLISH-LATIN.*" true nil nil nil nil nil nil nil nil nil nil nil nil nil)
            map {}
            word nil
            entry []]
@@ -809,6 +824,8 @@ the str matches the pattern, or it returns function applied to str."
                                              :split-this #"(?i)ACT[\ \_][I II III IV V].*" ;split the odditiets too.
                                              :duplicate-pats [#"THE COMEDY OF ERRORS" #"THE TEMPEST"] ;others?
                                              :split-at #"\. "
+                                             :fold-pred (fn [ln] (and (not (re-matches #"ACT.*|(?i)SCENE.*" ln)) 
+                                                                  (or (justified? ln) (left-justified? ln))))
                                              ;lop should work now that the spec and split patterns are right. 
                                              :lop-gen #"(?i)ACT .*" 
                                              :lop-spec #"(?i)ACT [I IV V]+\.? SCENE [1 I].*"
@@ -844,13 +861,12 @@ the str matches the pattern, or it returns function applied to str."
                                      :collapse-pat #"\ {4,6}[0-9a-zA-Z].*");if the line is indented > 6, dont collapse
             
             ;; "James Joyce" {"Portrait of the Artist" "map here" "Ulysses" "Finnegans Wake"}
+})
 
 
-                                        ;broken. build a whole map-navigation system off of this. list all the keys of a text, find all the works of an author. Right now I need a way to determine if its an anonymous author, and so just a title-map, or if there's a map full of texts. 
-            ;; (defn list-texts [] 
-            ;;   (map (fn [k] (if (map? (texts k)) (list k (keys k)) k)) (keys texts)))
-            })
-
+;broken. build a whole map-navigation system off of this. list all the keys of a text, find all the works of an author. Right now I need a way to determine if its an anonymous author, and so just a title-map, or if there's a map full of texts. 
+(defn list-texts [] 
+  (map (fn [k] (if (map? (texts k)) (list k (keys k)) k)) (keys texts)))
 ;write a loaded-texts map here so I'm not updating the list of funtions to load. 
 
 (def loaded-texts {})

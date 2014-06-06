@@ -94,10 +94,10 @@
 
 ;these are both TOO SLOW! use regex instead!
 
-;justified is just 1 > than indented
+;justified is thrice indented?
 (defn justified? [line]
-  (if (>= (count line) 5)
-    (= (subs line 0 5)  "     ")
+  (if (>= (count line) 12)
+    (= (subs line 0 12)  "            ")
     false))
 
 (defn left-justified? [str]
@@ -142,6 +142,33 @@
 ;this is a prett version of normal split. It'll retain the char where the split occurs, giving it to the first segment, and will trim the spaces off of the second segment. 
 (defn string-split [str split-at])
 
+;also from contrib. 
+(defn indexed
+  "Returns a lazy sequence of [index, item] pairs, where items come
+  from 's' and indexes count up from zero.
+  (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
+  [s]
+  (map vector (iterate inc 0) s))
+
+ 
+;from contrib
+(defn positions
+  "Returns a lazy sequence containing the positions at which pred
+   is true for items in coll."
+  [pred coll]
+  (for [[idx elt] (indexed coll) :when (pred elt)] idx))
+
+
+;doesnt retain front and end spaces right now... 
+(defn cut-gaps [str]
+  "Similar to triml, but it retains spaces at the beginning, removes expanses in between words."
+  (let [s (string/split str #"\ ")
+        l-spaces (if (empty? (first s)) 
+                   (subvec s (first (positions empty? s)) (first (positions not-empty s)))
+                   [])]
+    (string/join " " (concat l-spaces (remove empty? s)))))
+
+
 (defn re-matches-all [pats str]
   (every? (fn [pat] (re-matches pat str)) pats))
 
@@ -166,7 +193,10 @@
 ;DUH, str does what I need. Problem solved, just split it where things like . .* + etcetera occur. 
 (defn re-rest [pat str]
   "If there is a match it'll return everything that occurs after the supplied pattern. #ACT .* matched to ACT II will return II."
+  
 )
+
+
 ;=============================================
 ;FILES
 ;=============================================

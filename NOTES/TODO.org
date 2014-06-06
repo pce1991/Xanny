@@ -165,3 +165,9 @@
      Are quotations all one segment? do they count as a section of their own? 
 *** Methodology problem
     The maps are written in a way to make sense to me as a user, but it might not be the best way programatically.
+*** <2014-06-05 Thu>
+    Finish: 
+    re-rest
+    replace-lines, 
+    insert-every-nth-line, 
+    pull-lines
