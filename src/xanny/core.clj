@@ -3,6 +3,7 @@
   (:use xanny.nlp)
   (:use xanny.texts)
   (:use xanny.utilities)
+  (:use xanny.quiz)
   (:use clojure.tools.namespace.repl))
 
 ;require clojure.namespaces

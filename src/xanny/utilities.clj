@@ -90,6 +90,11 @@
     (= (subs str 0 2) "  ")
     false))
 
+(defn notched-n? [str n]
+  (if (and  (>= (count str) n)
+            (re-matches (re-pattern (str "\\ {" n ",}")) str))
+    true
+    false))
 ;include one to check if its just indented twolines, or maybe check if its totally left justified
 
 ;these are both TOO SLOW! use regex instead!
@@ -118,7 +123,7 @@
       (apply str  (reverse s)))))
 
 (defn first-word [string]
-  (first (string/split string #"\ ")))
+  (string/replace (first (string/split string #"\ ")) #"," ""))
 
 (defn rest-words [string]
   (string/join " " (rest (string/split string #"\ "))))
@@ -196,7 +201,8 @@
   
 )
 
-
+(defn occurences [element seq]
+  (count  (filter #{element} seq)))
 ;=============================================
 ;FILES
 ;=============================================

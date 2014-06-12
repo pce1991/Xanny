@@ -47,7 +47,12 @@
 **** TODO Easy user interaction
      Since the index is always 5 long, the user needs a way to interact with the text as if the index is only as long as it is full. [0 0 1 1 1] should be treated like [1 1 1] by the user. It still should be spoken of though with part as the 1st. Maybe just include meta-data that explains what the largest unit is. Fetch will require them to put in {0 0, 1 0, 2 1, ...} to access the first part of a tri-index. They should be able to treat it like 2 in the first funtional index. 
 
-     THis also includes having an easy way to access files other than typing the whole thing out. 
+     THis also includes having an easy way to access files other than typing the whole thing out.
+**** Generate latin poetry about clouds.
+     I need a way to count syllables for laitn then.
+**** TODO Create a list of my vocab words, then look up in dictionary
+**** TODO Use clojure-script for online UI
+     Build a repl like they use Poetroid.
 *** FOR CONSEDERATION
 **** New map design 
      {:vols {0 {:parts {1 {:title "GEN" :sec {1 {:title "chap 1"} 2 {:title  "chap 2" :contents {1 "In the beginning"}}}}}} 1 {}}}
@@ -108,16 +113,19 @@
 **** Odyssey
      How do I do this one and avoid the argument? It's not indented by 2 spaces like the Iliad... remove argument from text? There arent any illustrations that need to go, but that's kind of cheeting.
      -use push lines. I'd say until it hits a blankline, but some arguments are multiple paragraphs. 
+
+     Push lines, but give it a length pattern instead of normal regex. that way it'll push everything that isnt the argument. But it'll push parts of the argument that are shorter...
+
 **** Dictionary
      Just get keys for now to experiment with a regex dictionary.
 
      Can't use map-text for this
 
+**** Encyclopedia
+     I need a way to combine a whole folder of files into one text.
 *** 10 things to do as of <2014-05-29 Thu>
 **** MAP TEXTS, clean up shakespeare.
      I need to incorporate split-lines to do this. Need to map the faerie queene also, and Samson Agonist.
-**** Map dictionary and build regex search
-     Ponunciation is followed by the Defn: or a series of numbers. Use regex to see if its number or a defn, otherwise add it to the current definition. Use the number as a key, and if its defn, just use 1 as a key.     
 **** Add translations
      Hard to find something other than KJV, so use the odyssey and illiad for experiments. 
 **** Add title and author to the metadata of map.
@@ -145,29 +153,29 @@
 **** Incorporate notes, save/load. 
      Also build a line-to-line reference system.
 **** finish shakespeare
-          I know I'm losing stage directions, SCENE, stuff like that. Figure it out. It's because I'm using indented and notched, and these are usually neither. THe problem is if I stop then it maps things over. I think that's because I'm not using empty? to increment section
-
      Comb through this stuff by hand to make sure its all right. Hawlet act 1 doesnt have 6 scenes...
 
      Exit... when its attached at the end of a character's line should be split. THat means I need cleave-lines to take a vector instead of a single pattern. map re-patern over these so the user can just input strings. 
 
-     I think a play is missing, cause it should be 37 without a lover's complaint. 
+     I think a play is missing, cause it should be 37 without a lover's complaint. It's pericles. Let push take multiple sections, a map of start and ends. 
+      
+     Collapse SCENE: with the line below it. 
 
-     Splitting at Act might not be working in hamlet among others. 
-
-**** Suppress evaluation of the maps until they are called up. 
-     Write the maps as lists, then write an aceess function that looks up the list, then evals it, replacing the list with the evalled form.
+     Antony and Cleopatra stage directions arent justified.
 **** Clean up sentence maps
      Has trouble combing split-lines, recognizing quotes-attributions, retaining " markers. 
      
      I could maybe just use collapse-lines for this. 
 
-     Are quotations all one segment? do they count as a section of their own? 
-*** Methodology problem
-    The maps are written in a way to make sense to me as a user, but it might not be the best way programatically.
+     Are quotations all one segment? do they count as a section of their own?
+**** Make a names map for a text, and then do n-grams of letters 
 *** <2014-06-05 Thu>
     Finish: 
     re-rest
     replace-lines, 
-    insert-every-nth-line, 
     pull-lines
+    Updata all funtions to perform on multiple parts, like push lines needs to work with multiple starts and stops. 
+*** Methodology problem
+    The maps are written in a way to make sense to me as a user, but it might not be the best way programatically.
+
+    Removing chunks of blanklines might be more combersome for PDFs than just smushing together those breaks. Not always though. 

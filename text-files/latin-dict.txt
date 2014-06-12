@@ -10,7 +10,7 @@ a., abb. N M [XXXDG]
 year; abb. ann./a.; [regnavit a(nnis). XLIIII => he reigned for 44 years];
 ab PREP ABL [XXXAO]
 by (agent), from (departure, cause, remote origin/time); after (reference);
-abactius, abactia, abactium ADJ [XAXEO]
+abactius, afbactia, abactium ADJ [XAXEO]
 stolen/rustled (of cattle);
 abactor, abactoris N (3rd) M [XAXEO]
 cattle thief, rustler; one who drives off;
@@ -8554,7 +8554,7 @@ apud PREP ACC [XXXAO]
 at, by, near, among; at the house of; before, in the presence/writings/view of;
 apulsus, apulsi N (2nd) M [EXXFW]
 one drawn/pushed/driven aside/away (from);
-apus, apodis N (3rd) F [XAXNO]
+apus, apodis N (3rd) F [XAXNO] 
 bird (the swift?); kind of swallow (said to have no feet), black martin (L+S);
 aput PREP ACC [XXXAO]
 at, by, near, among; at the house of; before, in presence/writings/view/eyes of;
