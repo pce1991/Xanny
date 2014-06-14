@@ -165,7 +165,7 @@
 
 
 ;doesnt retain front and end spaces right now... 
-(defn cut-gaps [str]
+(defn kill-gaps [str]
   "Similar to triml, but it retains spaces at the beginning, removes expanses in between words."
   (let [s (string/split str #"\ ")
         l-spaces (if (empty? (first s)) 
@@ -203,6 +203,7 @@
 
 (defn occurences [element seq]
   (count  (filter #{element} seq)))
+
 ;=============================================
 ;FILES
 ;=============================================

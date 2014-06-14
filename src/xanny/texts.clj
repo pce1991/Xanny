@@ -173,25 +173,41 @@
             (recur (rest seq) (conj new line))))
         (reverse new)))))
 
-;have this work with a map of starts and ends. 
-(defn smush-chunk [text-seq start end]
-  "Makes a single line out of a chunk from start to end."
+;using a map of start and end is the best way to improve this. 
+;The reliability of this function seems to depend entirely on the regex you give it. If blank-line is a pattern, then, and throgh-end? is true, then itll smush that new-line right into 
+;THIS IS STILL ADDING BLANKLINES IF THAT'S AN END PATTERN! i assume it'll do this for more than just blanks, wreaking more havoc than just off-indexes. this gives me horribly confusing results! gotto smoove it out!
+
+(defn smush-chunk [text-seq start end through-end?]
+  "Makes a single line out of a chunk from start to end. Adjacent starts will never be joined."
   (if (or  (nil? start) (nil? end))
     text-seq
     (loop [seq text-seq
            new ()
            chunk []]
-      (if (empty? seq)
-        (reverse new)
+      (if (empty? seq) ;if chunk isnt empty too then add it onto new before returning
+        (if-not (empty? chunk)
+          (reverse (conj new (string/join " " (remove empty? chunk))))
+          (reverse new))
         (let [line (first seq)]
-          (cond (re-matches start line)
+          (cond (and (re-matches start line) (empty? chunk)) ;so what if its a start and it isnt empty? 
                 (recur (rest seq) new (conj chunk line))
+
+                ;do I need something for if its a start but chunk isnt empty either?
+                (re-matches start line)
+                (recur (rest seq) (conj new (string/join " " (remove empty? chunk))) (conj [] line))
+
                 (and (not (re-matches end line)) (not (empty? chunk)))
                 (recur (rest seq) new (conj chunk line))
-                (re-matches end line)
-                (recur (rest seq) (conj new (string/join " " (conj chunk line))) [])
-                (empty? chunk)
-                (recur (rest seq) (conj new line) chunk)))))))
+
+                (and  (re-matches end line) through-end? (not (empty? chunk)))
+                (recur (rest seq) (conj new (string/join " " (remove empty?  (conj chunk line)))) [])
+
+                (and (re-matches end line) (not (empty? chunk))) ;what if it matches and chunk is empty? 
+                (recur (rest seq) (conj  (conj new (string/join " " (remove empty? chunk))) line) []) 
+ 
+                ;need antother case here? 
+
+                :else (recur (rest seq) (conj new line) chunk)))))))
 
 ;;; use in shakespeare where stage-directions should be one line. give several predicates like justified and left-justified so it handles both instances without incrementing the section marker. 
 ;this can just be combined with collapse-lines, it's stupid to have two. 
@@ -206,7 +222,7 @@
         (cond (empty? seq)
               (reverse new)
               (and (predicate line) (or (empty? (second seq)) (not (predicate (second seq))))) ;if its a newline, of doesnt satisfy the predicate, then fold the lines and put in new.
-              (recur (rest seq) (conj new (cut-gaps (string/join " " (conj fold line)))) []) 
+              (recur (rest seq) (conj new (kill-gaps (string/join " " (conj fold line)))) []) 
               (predicate line)
               (recur (rest seq) new (conj fold line)) ;messes with formatting
               :else (recur (rest seq) (conj new line) []))))))
@@ -326,30 +342,35 @@
                 (recur (rest seq) (concat [addition line] new)))
               :else (recur (rest seq) (conj new line))))))
 
+(defn cut-gap-between [text-seq start end]
+  "Removes everything between start and end.")
 
 ;just pass in nil for cut-start and until if you dont need anything cut
 ;ugly as sin. MAKE SURE THE ORDER IS RIGHT, it'll be unpleanant otherwise.
 ;this order might not work: it should split and collapse lines, then remove, then move. This might not work for everything though... this fucked it all up, I need to find the right order for collapsing functions
 ;use threading macro, much easier to read. 
+;it seems like smush and collapse/fold fail to work in tandem. WHY? maybe get rid of fold and collapse in favor of smush. It works in Whitman, but not the Quran, WHY? 
 (defn clear-text [text-path start end toss? cut-start cut-until remove-pats split-this split-at lop-gen lop-spec
-                  lop-split collapse-pat smush-start smush-end fold-pred duplicate-pats push-start push-stop push-n]  
+                  lop-split  smush-start smush-end smush-through? fold-pred duplicate-pats push-start
+                  push-stop push-n]  
   (fold-lines 
    (push-lines 
     (remove-duplicates 
      (smush-chunk 
-      (collapse-lines 
-       (cleave-lines
-        (lop-lines 
-         (remove-lines
-          (cut-consecutive-lines 
-           (cut-chunk 
-            (trim-back (trim-front text-path start toss?) end toss?) ;trim front is the root, converting path to seq
-            cut-start cut-until))
-          remove-pats)
-         lop-gen lop-spec lop-split) 
-        split-this split-at)
-       collapse-pat)
-      smush-start smush-end)
+      ;collapse-lines 
+      (cleave-lines
+       (lop-lines 
+        (remove-lines
+         (cut-consecutive-lines 
+          (cut-chunk 
+           (trim-back (trim-front text-path start toss?) end toss?) ;trim front is the root, converting path to seq
+           cut-start cut-until))
+         remove-pats)
+        lop-gen lop-spec lop-split) 
+       split-this split-at)
+                                        ;collapse-pat
+      
+      smush-start smush-end smush-through?)
      duplicate-pats)
     push-start push-stop push-n)
    fold-pred))
@@ -407,7 +428,7 @@ the str matches the pattern, or it returns function applied to str."
 (defn map-text 
   [text-path volume? book? part? section? segment? map-section-marker? ;either t or f. use 1 or 0 instd
    & {:keys [start end toss? cut-start cut-until remove-pats split-this split-at lop-gen lop-spec lop-split
-             collapse-pat smush-start smush-end fold-pred duplicate-pats push-start push-stop push-n] 
+             collapse-pat smush-start smush-end smush-through? fold-pred duplicate-pats push-start push-stop push-n] 
       :or {start #"Produced by.*|This etext was prepared by.*"
            end #".*(?i)End of\s?(the)? Project Gutenberg.*" 
            toss? true
@@ -419,9 +440,10 @@ the str matches the pattern, or it returns function applied to str."
            lop-gen nil
            lop-spec nil
            lop-split nil
-           collapse-pat nil
+           ;collapse-pat nil
            smush-start nil
            smush-end nil
+           smush-through? false
            fold-pred nil
            duplicate-pats nil
            push-start nil
@@ -429,8 +451,8 @@ the str matches the pattern, or it returns function applied to str."
            push-n 0}}] ;this isn't matching all
   "returns a map of the text with keywords representing part, section, and segment.s"
   (loop [seq (clear-text text-path start end toss? cut-start cut-until remove-pats split-this split-at lop-gen
-                         lop-spec lop-split collapse-pat smush-start smush-end fold-pred duplicate-pats push-start
-                         push-stop push-n) 
+                         lop-spec lop-split  smush-start smush-end smush-through? fold-pred
+                         duplicate-pats push-start push-stop push-n) 
          map {}
          volume 0
          book 0
@@ -550,6 +572,8 @@ the str matches the pattern, or it returns function applied to str."
                 (vals m))))
 
 ;clean map by supplying a map of patterns to clean, and the methods of sanitization to use on them. Some acts are indented too much in Shakespeare, and a lot of line-based texts are notched. 
+;use kill-gaps on each-line, remove spacing at beginnig and end of lines, get rid of linebreaks, other oddities. 
+
 
 ;what to do about contractions? get rid of other symbols. use iterate?
 ;TOO slow. use split? this is GACK. also inconsistent. 
@@ -854,18 +878,17 @@ the str matches the pattern, or it returns function applied to str."
 
 ;way too slow to do all of these, just write it somewhere. this should really be a function map-all-texts
 (def texts {"Bible" '(map-bible)
-            ;map the qur'an, use those 3 translations on gutenberg. Grab each individually by filtering out the name of translator at the beginning of each verse. add remove-lines to clear-text
-            ;collapse lines so chapter and it's title are the same. Cut lines that are numbers, bars, and remove lines that are of a different translation. collapse-lines on verses too so each line is its own verse
-            ;why wont this work now!? the sequence isnt getting through clear-text 
+           
             "Quran" {"Yusuf Ali" '(map-text "text-files/quran.txt" nil nil nil #" Chapter .*"
                                             not-empty true
                                             :start #"----.*"
                                             ;:push-start #"Y:.*" :push-end #"" :push-n 2 ;why wont this work, even though I don't need it to, I'd like to know. 
                                             :remove-pats [#"----.*" #"[0-9]{3}\.[0-9]{3}" #" Total Verses.*" ]
                                             :cut-start #"P:.*|S:.*" :cut-until #"";why does this slow it down?
-                                            :smush-start #" Chapter .*" ;why doesnt this work? Is it the ordering of clean text? 
-                                            :smush-end #"\ {4,}[A-Z(),\ -]+"
-                                            :collapse-pat #"[^Y].*"
+                                            :smush-start #" Chapter .*|Y:.*" ;why doesnt this work? Is it the ordering of clean text? 
+                                            :smush-end #"\ {4,}[A-Z(),\ -]+|.*[\.,;!-'\?\"]"
+                                            ;I need it to stop at a blank for Y:, but not for Chapter, this is why I need it to work with a map. Alternatively I could use cut-gap-between to not even worry about Chapter. 
+                                            :smush-through? true
                                             )}
             "Webster's Dictionary" '(map-dictionary)
             "Homer" {"The Illiad" '(map-text "text-files/POETRY/illiad-pope.txt"
@@ -907,6 +930,7 @@ the str matches the pattern, or it returns function applied to str."
                                              :split-this #".*(?i)ACT [I II III IV V].*" ;split the odditiets too.
                                              :split-at #"\. "
                                              :duplicate-pats [#"THE COMEDY OF ERRORS" #"THE TEMPEST"] ;others?
+                                             ;think of how to do this with smush-chunk. 
                                              :fold-pred (fn [ln] (and (not (re-matches #"ACT.*|(?i)SCENE.*" ln)) 
                                                                   (or (justified? ln) (left-justified? ln))))
                                              ;lop should work now that the spec and split patterns are right. 
@@ -941,7 +965,12 @@ the str matches the pattern, or it returns function applied to str."
             "Walt Whitman" '(map-text "text-files/POETRY/leaves-of-grass.txt" #"BOOK .*" left-justified?
                                      integer-string? empty? not-empty false
                                      :start #"By Walt Whitman"
-                                     :collapse-pat #"\ {4,6}[0-9a-zA-Z].*");if the line is indented > 6, dont collapse. this can be replaced with fold-lines checking justified or something. 
+                                     ;this smushing fucks up eidolons 
+                                     :smush-start #"\ {2}\S.*|\ {5}\S.*|\ {7}\S.*"
+                                     :smush-end #"|\ {2}\S.*|\ {5}\S.*|\ {7}\S.*" ;lines that end are 2,5,or 7 spaces
+                                     :smush-through? false
+                                     ;:collapse-pat #"\ {4,6}[0-9a-zA-Z].*"
+                                     );if the line is indented > 6, dont collapse. this can be replaced with fold-lines checking justified or something. 
             
             ;; "James Joyce" {"Portrait of the Artist" "map here" "Ulysses" "Finnegans Wake"}
 })
