@@ -177,7 +177,7 @@
 ;The reliability of this function seems to depend entirely on the regex you give it. If blank-line is a pattern, then, and throgh-end? is true, then itll smush that new-line right into 
 ;THIS IS STILL ADDING BLANKLINES IF THAT'S AN END PATTERN! i assume it'll do this for more than just blanks, wreaking more havoc than just off-indexes. this gives me horribly confusing results! gotto smoove it out!
 
-(defn smush-chunk [text-seq start end through-end?]
+(defn smush-chunk2 [text-seq start end through-end?]
   "Makes a single line out of a chunk from start to end. Adjacent starts will never be joined."
   (if (or  (nil? start) (nil? end))
     text-seq
@@ -208,6 +208,38 @@
                 ;need antother case here? 
 
                 :else (recur (rest seq) (conj new line) chunk)))))))
+
+;through-end needs to be part of patterns so each pattern gets to choos. Right now it'll gobble up blanks as ends.
+;this doesnt work! runs out of memory, in my own tests its a null pointer... 
+(defn smush-chunk [text-seq patterns through-end?]
+  (if (nil? patterns)
+    text-seq
+    (let [k (keys patterns)
+          v (vals patterns)]
+      (loop [seq text-seq
+             new ()
+             chunk []
+             end nil]
+        (let [line (first seq)]
+          (cond (and (re-matches-some k line) (empty? chunk))
+                (let [match-pos (position k (re-matches-some k line))
+                      match-val (get v match-pos)]
+                  (recur (rest seq) new (conj chunk line) match-val))
+                ;if it meets another start in the chunk, it begins again. 
+                (re-matches-some k line)
+                (let [match-pos (position k (re-matches-some k line))
+                      match-val (get v match-pos)]
+                  (recur (rest seq) (conj new (string/join " "(remove empty? chunk))) (conj new line) match-val))
+                ;if its an end going through, also make sure chunk isnt empty, because of it is and an end is met then its just conjed onto new and chunk stays empty. 
+                (and end through-end? (re-matches end line) (not (empty? chunk)) )
+                (recur (rest seq) (conj new (string/join " "(remove empty? (conj chunk line)))) [] nil)
+                ; if it isnt going through the end.
+                (and end (re-matches end line) (not (empty? chunk)))
+                (recur (rest seq) (conj (conj new (string/join " " (remove empty? chunk))) line) [] nil)
+                ;if it is neither a start or an end, but you've begun, then it adds it to chunk.
+                (not (empty? chunk))
+                (recur (rest seq) new (conj chunk line) end)
+                :else (recur (rest seq) (conj new line) [] nil)))))))
 
 ;;; use in shakespeare where stage-directions should be one line. give several predicates like justified and left-justified so it handles both instances without incrementing the section marker. 
 ;this can just be combined with collapse-lines, it's stupid to have two. 
@@ -342,8 +374,24 @@
                 (recur (rest seq) (concat [addition line] new)))
               :else (recur (rest seq) (conj new line))))))
 
+;include this in clear-text after I remove something to get it down to parameter limit. 
 (defn cut-gap-between [text-seq start end]
-  "Removes everything between start and end.")
+  "Removes everything between start and end."
+  (if (nil? start)
+    text-seq
+    (loop [seq text-seq
+           new ()
+           started? false]
+      (if (empty? seq)
+        (reverse new)
+        (let [line (first seq)]
+          (cond (and  (re-matches start line) (not started?))
+                (recur (rest seq) (conj new line) true)
+                (and (re-matches end line) started?)
+                (recur (rest seq) (conj new line) false)
+                (not started?)
+                (recur (rest seq) (conj new line) started?)
+                :else (recur (rest seq) new started?)))))))
 
 ;just pass in nil for cut-start and until if you dont need anything cut
 ;ugly as sin. MAKE SURE THE ORDER IS RIGHT, it'll be unpleanant otherwise.
@@ -370,7 +418,9 @@
        split-this split-at)
                                         ;collapse-pat
       
-      smush-start smush-end smush-through?)
+      smush-start ;smush-end 
+      smush-through?
+      )
      duplicate-pats)
     push-start push-stop push-n)
    fold-pred))
@@ -885,8 +935,10 @@ the str matches the pattern, or it returns function applied to str."
                                             ;:push-start #"Y:.*" :push-end #"" :push-n 2 ;why wont this work, even though I don't need it to, I'd like to know. 
                                             :remove-pats [#"----.*" #"[0-9]{3}\.[0-9]{3}" #" Total Verses.*" ]
                                             :cut-start #"P:.*|S:.*" :cut-until #"";why does this slow it down?
-                                            :smush-start #" Chapter .*|Y:.*" ;why doesnt this work? Is it the ordering of clean text? 
-                                            :smush-end #"\ {4,}[A-Z(),\ -]+|.*[\.,;!-'\?\"]"
+                                            :smush-start {#" Chapter .*" #"\ {4,}[A-Z(),\ -]+"
+                                                          #"Y:.*"  #""} 
+                                        ;why doesnt this work? Is it the ordering of clean text? 
+;                                            :smush-end #"\ {4,}[A-Z(),\ -]+|.*[\.,;!-'\?\"]"
                                             ;I need it to stop at a blank for Y:, but not for Chapter, this is why I need it to work with a map. Alternatively I could use cut-gap-between to not even worry about Chapter. 
                                             :smush-through? true
                                             )}
@@ -901,7 +953,12 @@ the str matches the pattern, or it returns function applied to str."
                                              :cut-start #".*PUBLI VERGILI MARONIS" :cut-until 3)}
             "Beowulf" '(map-text "text-files/POETRY/beowulf.txt" nil nil nil nil not-empty false
                                 :start nil :end nil)
-            "Chaucer" {}
+            ;find a way to handle notes
+            "Chaucer" {"The Cantebury Tales" '(map-text "text-files/POETRY/chaucer.txt"
+                                                        nil nil nil nil nil true
+                                                        :start #"THE CANTEBURY TALES."
+                                                        :end #"THE END OF THE CANTEBURY TALES"
+                                                        )}
 ;            I dont think this is mapping segments and secions right. 
             "Shakespeare" {"Plays" '(map-text "text-files/shakespeare/shakespeare.txt" 
                                              (fn [ln] (and (uppercase? ln) (not (notched? ln))
@@ -931,6 +988,7 @@ the str matches the pattern, or it returns function applied to str."
                                              :split-at #"\. "
                                              :duplicate-pats [#"THE COMEDY OF ERRORS" #"THE TEMPEST"] ;others?
                                              ;think of how to do this with smush-chunk. 
+                                             
                                              :fold-pred (fn [ln] (and (not (re-matches #"ACT.*|(?i)SCENE.*" ln)) 
                                                                   (or (justified? ln) (left-justified? ln))))
                                              ;lop should work now that the spec and split patterns are right. 

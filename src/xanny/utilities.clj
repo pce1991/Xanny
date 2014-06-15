@@ -156,6 +156,9 @@
   (map vector (iterate inc 0) s))
 
  
+(defn position [coll element]
+  (.indexOf coll element))
+
 ;from contrib
 (defn positions
   "Returns a lazy sequence containing the positions at which pred
