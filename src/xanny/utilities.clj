@@ -21,6 +21,9 @@
 ;STRING TRIMMING
 ;=============================================
 
+(defn get-words [string] 
+  (string/split string #"\ "))
+
 ;doesnt work for non-english chars
 (defn letter? [char]
   (re-matches #"[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz]" 
@@ -182,7 +185,10 @@
 
 ;returns the first match
 (defn re-matches-some [pats str]
-  (some (fn [pat] (re-matches pat str)) pats))
+  (some (fn [pat] (if (re-matches pat str)
+                    pat
+                    false)) 
+        pats))
 
 ;returs t if it only matches one of the patterns provided. 
 (defn re-matches-one [pats str])

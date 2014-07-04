@@ -9,7 +9,8 @@
 		 [clj-wordnet "0.1.0"]
                  [org.clojure/core.match "0.2.1"]
 		 [org.clojure/tools.namespace "0.2.4"]
-                 [incanter "1.5.4"]]
+                 [incanter "1.5.4"]
+                 [org.clojure/data.xml "0.0.7"]]
   :main ^:skip-aot xanny.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

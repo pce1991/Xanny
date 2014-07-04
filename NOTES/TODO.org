@@ -174,7 +174,9 @@
     re-rest
     replace-lines, 
     pull-lines
-    Updata all funtions to perform on multiple parts, like push lines needs to work with multiple starts and stops. 
+    Updata all funtions to perform on multiple parts, like push lines needs to work with multiple starts and stops.
+*** <2014-06-15 Sun>
+    Smush-chunk isnt working, it swallows poem titles in Whitman, it smushes together the chapter title with the inscription in the Quran, and various other things I imagine. 
 *** Methodology problem
     The maps are written in a way to make sense to me as a user, but it might not be the best way programatically.
 

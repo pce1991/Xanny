@@ -8,6 +8,7 @@
 
 ;these are the [XXXXX] codes: AGE, AREA, GEO, FREQ, SOURCE
 ;file://localhost/Users/PCEye/Downloads/words-1.97Ed/wordsdoc.htm#Dictionary Codes
+;needs to handle words with multiple definitions, like malus
 (defn latin-dict []
   (with-open [rdr (clojure.java.io/reader  "text-files/latin-dict.txt" :encoding "UTF-8")]
     (loop [seq (t/insert-line-if (line-seq rdr) "" #".+\[.+\]" :above)
@@ -31,14 +32,15 @@
 
 
 ;have a different vocab lists for verbs
-(def vocab {:nouns (s/split "agricola puella nihil fama forma fortuna ira nauta patria pecunia philosphia poena poeta porta puella rosa sententia vita ager amicus femina fillia fillius numerus populus puer sapientia vir avarus pauci basium bellum consillium cura donum exitium magister mora oculus officium otium periculum remedium  Romanus " #"\ ")
-            :verbs (s/split "cogito amo debeo do erro laudo moneo salveo servo conservo terreo valeo habeo satio video voco iuvo sum" #"\ ")
-            :adjectives (s/split "pulcher non antiquus magnus multus tuus meus"#"\ ")
-            :adverbs (s/split "saepe semper bonus humanus bellus malus parvus stultus verus hodie" #"\ ")
+(def vocab {:nouns (s/split "agricola puella nihil fama forma fortuna ira nauta patria pecunia philosophia poena poeta porta puella rosa sententia vita ager amicus femina filia filius numerus populus puer sapientia vir avarus pauci basium bellum consillium cura donum exitium magister mora oculus officium otium periculum remedium Romanus adulescentia animus caelum culpa gloria verbum deus discipulus insidiae liber tyrannus vitium " #"\ ")
+            :verbs (s/split "cogito amo debeo do erro laudo moneo salveo servo conservo terreo valeo habeo satio video voco iuvo tolero sum" #"\ ")
+            :adjectives (s/split "pulcher non antiquus magnus multus tuus meus sanus plenus salvus secundus perpetuus"#"\ ")
+            :adverbs (s/split "saepe semper bonus humanus bellus malus parvus stultus verus hodie ibi nunc quare ubi" #"\ ")
             :other (s/split "si" #"\ ")})
 
 (defn all-vocab []
-  (map concat (vals vocab)))
+  (flatten (vals vocab)))
+
 
 ;keep a list of words chosen, so the list of words decrements each time. keep a map of correct and wrong guesses, then let you replay with the words you got wrong. 
 ;save attempts to a file, and access the most recent entry, or overwrite it each time, or overwrite the entry for each set, so it separates noun attempts from verb ones. 
@@ -47,9 +49,9 @@
   (loop [words-left words
          wrong-answers []]
     (if (empty? words-left)
-      (if-not (empty? wrong-answers)
-        (println wrong-answers "\nBeginning quiz with missed words" (vocab-quiz wrong-answers)) ;not working
-        wrong-answers) 
+      (if (empty? wrong-answers)
+        wrong-answers ;not working
+        (println wrong-answers "\nBeginning quiz with missed words")) 
       (let [word (rand-nth words-left)
             pick (dict word)]
         (println "The word is:" word "; it's forms being" (:forms pick))
@@ -121,6 +123,15 @@
              :imperfect {1 2}})
 
 ;if the ending is a vowel then replace the stem with it? 
+
+(def sum {:present-indicative (get-words "sum es est sumus estis sunt" )
+          :future-indicative (get-words "ero eris erit erimus eritis erunt")
+          :imperfect-indicative (get-words "eram eras erat eramus eratis erant")})
+
+;requries an infinitive to complete its meaning. 
+(def possum {:present-indicative (get-words "possum potes potest posumus potestus possunt")
+             :future-indicative (get-words  "potero poteris poterit poterumus poteritis poterunt")
+             :imperfect-indicative (get-words "poteram poteras poterat poteramus poteratis poterant")})
 
 (defn case-quiz [nth-decl] 
   (let [pick (case (rand-int 4)

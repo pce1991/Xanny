@@ -1,0 +1,12 @@
+(ns xanny.narrative
+  (:require [xanny.utilities :refrer :all]))
+
+;phase 1: generate from nothing
+;phase 2: generate from training texts so that it creates stories with an "awareness" of their derivation. 
+
+(def conflict {:man :nature} {:man :man} {:man :himself})
+
+
+
+;simulate linguistically or mechanically? DF is mechanics, but that seems too rigid. The issue arrises when stringing sentences/events together.  
+

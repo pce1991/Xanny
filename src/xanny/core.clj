@@ -4,6 +4,8 @@
   (:use xanny.texts)
   (:use xanny.utilities)
   (:use xanny.quiz)
+  (:use xanny.dictionary)
   (:use clojure.tools.namespace.repl))
 
 ;require clojure.namespaces
+

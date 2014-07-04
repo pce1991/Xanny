@@ -1,19 +1,3 @@
-(sec bible 1 4)
-(sec bible 1 5)
-(sec bible 1 6)
-(sec bible 1 7)
-(sec bible 1 8)
-(sec bible 1 9)
-(seg bible 1 3 0)
-(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
-(seg bible 1 3 0)
-(sec-seq bible 1 3)
-(sec bible 1 3)
-(sec bible 3 3)
-(sec bible 4 3)
-(sec bible 5 3)
-(sec bible 1 3)
-(seg bible 1 33 33)
 (seg bible 1 33 32)
 (def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
 (seg bible 1 33 32)
@@ -498,3 +482,19 @@ exit
 quit
 (re-matches nil "hi")
 quit
+(all-vocab)
+(map concat (all-vocab))
+(map concat '((1 2) (3 4)))
+(refresh)
+(vocab-quiz (all-vocab))
+(read-line
+)
+quit
+(vocab-quiz (all-vocab))
+quit
+(vocab-quiz (all-vocab))
+(all-vocab)
+(def v (vocab-quiz (all-vocab)))
+v
+(vocab-quiz v)
+(quit)
