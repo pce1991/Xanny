@@ -143,7 +143,7 @@
      to one file?
 **** Start adding notes and highlighting, and referning
      Each map will have :author :title :text and :notes. Notes have the same key as the text they're attached to. 
-     How do I handle highlighting? Create a vector of keys I think.
+     How do I handle highlighting? Create a vector of keys I think. I'll need to know the proper counts to make sure a highlight doesnt go overboard. 
 
      Lines can refernce lines (or a segment map like in fetch) in other texts. Get it down to a word being mapped to every occurrence of it in every text. Reference map would be {index {line {other-map [that-index anther]}}}
 **** Map dictionary to get syllable count, then measure poetic meter. 
@@ -176,7 +176,7 @@
     pull-lines
     Updata all funtions to perform on multiple parts, like push lines needs to work with multiple starts and stops.
 *** <2014-06-15 Sun>
-    Smush-chunk isnt working, it swallows poem titles in Whitman, it smushes together the chapter title with the inscription in the Quran, and various other things I imagine. 
+    Smush-chunk isnt working, it swallows poem titles in Whitman, it smushes together the chapter title with the inscription in the Quran, and various other things I imagine. It seems to put everything on one line in my toy examples. The problem seems to be with smush-through, because when its off it shouldnt add that to the line and should be retained... I don't know why this would be failing unless end is nil or chunk is empty. Here's the problem! position doesnt work with regex patterns it seems, so when it gets the match-pos its always -1, which means it can't find a proper end with the vector, which means end is still nil! Fixed this but it still doesnt work!
 *** Methodology problem
     The maps are written in a way to make sense to me as a user, but it might not be the best way programatically.
 

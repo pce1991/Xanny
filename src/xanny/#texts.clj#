@@ -230,7 +230,7 @@
           (let [line (first seq)]
                                         ;rethink this since re-matches-some gives the match, not the pattern
             (cond (and (re-matches-some starts line) (empty? chunk))
-                  (let [match-pos (position starts (re-matches-some starts line))
+                  (let [match-pos (position (map str  starts) (str  (re-matches-some starts line))) ;converts patterns to strings so tha
                         match-val (get ends match-pos)]
                     (recur (rest seq) new (conj chunk line) match-val))
                                         ;if it meets another start in the chunk, it begins again. 

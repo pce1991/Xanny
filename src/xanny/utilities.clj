@@ -17,6 +17,9 @@
   ([list start]  (seq (subvec (into [] list) start)))
   ([list start stop] (seq (subvec (into [] list) start stop))))
 
+(defn all-type? [coll type]
+  (every? (fn [e] (instance? type e)) coll))
+
 ;=============================================
 ;STRING TRIMMING
 ;=============================================
@@ -160,7 +163,9 @@
 
  
 (defn position [coll element]
-  (.indexOf coll element))
+  (if (all-type? coll java.util.regex.Pattern) ;it will treat a regex pattern like it isnt there, so this converts them to strings to check. 
+    (.indexOf (map str coll) (str element))
+    (.indexOf coll element)))
 
 ;from contrib
 (defn positions
