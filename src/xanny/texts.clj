@@ -209,9 +209,10 @@
 
                 :else (recur (rest seq) (conj new line) chunk)))))))
 
-;through-end needs to be part of patterns so each pattern gets to choos. Right now it'll gobble up blanks as ends.
+;through-end needs to be part of patterns so each pattern gets to choose. Right now it'll gobble up blanks as ends. Map should be {start [end through?]}
 ;this is working sometimes it seems, but not on my toytests which get me an empty list too often. 
 ;there seems to be a problem with it deleting things, and it also grabs too much in the quran, whether or not I smush-through. 
+;allow patterns to be functions instead of just regex? 
 (defn smush-chunk [text-seq patterns through-end?]
   (if (nil? patterns)
     text-seq
@@ -942,11 +943,8 @@ the str matches the pattern, or it returns function applied to str."
                                             ;:push-start #"Y:.*" :push-end #"" :push-n 2 ;why wont this work, even though I don't need it to, I'd like to know. 
                                             :remove-pats [#"----.*" #"[0-9]{3}\.[0-9]{3}" #" Total Verses.*" ]
                                             :cut-start #"P:.*|S:.*" :cut-until #"";why does this slow it down?
-                                            :smush-start {#" Chapter .*" #"\ {4,}[A-Z(),\ -]+"
+                                            :smush-start {#" Chapter .*|\s{4,}In the name of Allah,.*" #"\ {4,}[A-Z(),\ -]+"
                                                           #"Y:.*"  #""} 
-                                        ;why doesnt this work? Is it the ordering of clean text? 
-;                                            :smush-end #"\ {4,}[A-Z(),\ -]+|.*[\.,;!-'\?\"]"
-                                            ;I need it to stop at a blank for Y:, but not for Chapter, this is why I need it to work with a map. Alternatively I could use cut-gap-between to not even worry about Chapter. 
                                             :smush-through? true
                                             )}
             "Webster's Dictionary" '(map-dictionary)
@@ -996,9 +994,13 @@ the str matches the pattern, or it returns function applied to str."
                                              :duplicate-pats [#"THE COMEDY OF ERRORS" #"THE TEMPEST"] ;others?
                                              ;think of how to do this with smush-chunk. 
                                              
-                                             :fold-pred (fn [ln] (and (not (re-matches #"ACT.*|(?i)SCENE.*" ln)) 
-                                                                  (or (justified? ln) (left-justified? ln))))
-                                             ;lop should work now that the spec and split patterns are right. 
+                                             ;; :fold-pred(fn [ln] (and (not (re-matches #"ACT.*|(?i)SCENE.*" ln)) 
+                                             ;;               (or (justified? ln) (left-justified? ln)))).
+                                             ;numbering is ALL OFF! cause of swallowing return? 
+                                             :smush-start {#"\s+Enter .*" #"" ;will this gobble up blanks and put off numbering? Need to mark re-enter, some Enters are left-justified, 
+                                                           #"\s{12,}.*" #"\s{2}\S+|" };are there other ends? what about where lines are more than two over? 
+                                             :smush-through? true
+                                        ;lop should work now that the spec and split patterns are right. 
                                              :lop-gen #"(?i).*ACT [I IV V]+\.?.+" 
                                              :lop-spec #"(?i).*ACT [I IV V]+\.? SCENE [1 I]\.?|(?i)ACT [I IV V]+\.? PROLOGUE.*"
                                              :lop-split #"ACT [I IV V]+\.?" ;should work now

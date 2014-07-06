@@ -11,6 +11,7 @@
 		 [org.clojure/tools.namespace "0.2.4"]
                  [incanter "1.5.4"]
                  [org.clojure/data.xml "0.0.7"]]
+  :plugins [[cider/cider-nrepl "0.7.0-SNAPSHOT"]]
   :main ^:skip-aot xanny.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

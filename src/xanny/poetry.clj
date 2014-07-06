@@ -2,7 +2,7 @@
 
 ;this isnt quite the right way to say this programattically; what determines a feet is the relative stress, so essentially we are saying the first is greater than the second no matter that value. This could be expressed with > < functions where the first takes on any value less than the second. 
 ;more here http://en.wikipedia.org/wiki/Metrical_foot
-(def feet {:iamb ["-" "/"] :trochee ["/" "-"] :anapest ["-" "-" "/"] :dactyl ["/" "-" "-"] :spondee ["/" "/"] :pyrrhus ["-" "-"]})
+(def feet {:iamb ["-" "/"] :trochee ["/" "-"] :anapest ["-" "-" "/"] :dactyl ["/" "-" "-"] :amphribach ["-" "/" "-"] :spondee ["/" "/"] :pyrrhus ["-" "-"]})
 
 (def meter {:mono 1 :di 2 :tri 3 :tetra 4 :penta 5 :hexa 6 :hepta 7 :octa 8})
 

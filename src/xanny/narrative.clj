@@ -4,7 +4,7 @@
 ;phase 1: generate from nothing
 ;phase 2: generate from training texts so that it creates stories with an "awareness" of their derivation. 
 
-(def conflict {:man :nature} {:man :man} {:man :himself})
+(def conflict [{:man :nature} {:man :man} {:man :himself}])
 
 (def characters {:absalom {:passions :dialogue}})
 
