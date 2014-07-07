@@ -213,11 +213,13 @@
 ;this is working sometimes it seems, but not on my toytests which get me an empty list too often. 
 ;there seems to be a problem with it deleting things, and it also grabs too much in the quran, whether or not I smush-through. 
 ;allow patterns to be functions instead of just regex? 
+;still needs some touching up I think, but the main error is fixed.
 (defn smush-chunk [text-seq patterns through-end?]
+  "Takes a map of starts and ends, and concatenates everything between them, stopping at, or going through the end based on the boolean supplied. Adjacent starts are never joined."
   (if (nil? patterns)
     text-seq
-    (let [starts (keys patterns)
-          ends (vals patterns)]
+    (let [starts (into [] (keys patterns)) ;put these into vectors so I can use get on them.
+          ends (into [] (vals patterns))]
       (loop [seq text-seq
              new ()
              chunk []
@@ -229,6 +231,8 @@
             (reverse (conj new (string/join " " (remove empty? chunk))))) 
           (let [line (first seq)]
                                         ;rethink this since re-matches-some gives the match, not the pattern
+           ; (println starts ends)
+            ;(println chunk end)
             (cond (and (re-matches-some starts line) (empty? chunk))
                   (let [match-pos (position starts (re-matches-some starts line))
                         match-val (get ends match-pos)]
