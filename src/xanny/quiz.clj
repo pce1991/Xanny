@@ -74,34 +74,47 @@
 (def pronunciation {:consonants {} :vowels {} :dipthongs {}})
 
 (def cases {:nom {:sg {1 {:fem "-a" :masc "-a"} 
-                       2 {:masc "-us" :neut "-um"}} 
+                       2 {:masc "-us" :neut "-um"}
+                       3 {:masc "" :fem "-us" :neut "-us"}} 
                   :pl {1 {:fem "-ae" :masc "-ae"} 
-                       2 {:masc "-i" :neut "-a"}}}
+                       2 {:masc "-i" :neut "-a"}
+                       3 {:masc "-es" :fem "-es" :neut "-a"}}}
 
             :gen {:sg {1 {:fem "-ae" :masc "-ae"} 
-                       2 {:masc "-i" :neut "-i"}} 
+                       2 {:masc "-i" :neut "-i"}
+                       3 {:masc "-is" :fem "-is" :neut "-is"}} 
                   :pl {1 {:fem "-arum" :masc "-arum"} 
-                       2 {:masc "-orum" :neut "-orum"}}} 
+                       2 {:masc "-orum" :neut "-orum"}
+                       3 {:masc "-um" :fem "-um" :neut "-um"}}} 
 
             :dat {:sg {1 {:fem "-ae" :masc "-ae"} 
-                       2 {:masc "-o" :neut "-o"}}
+                       2 {:masc "-o" :neut "-o"}
+                       3 {:masc "-i" :fem "-i" :neut "-i"}}
                   :pl {1 {:fem "-is" :masc "-is"} 
-                       2 {:masc "-is" :neut "-is"}}} 
+                       2 {:masc "-is" :neut "-is"}
+                       3 {:masc "-ibus" :fem "-ibus" :neut "-ibus"}}} 
 
             :acc {:sg {1 {:fem "-am" :masc "-am"} 
-                       2 {:masc "-um" :neut "-um"}}
+                       2 {:masc "-um" :neut "-um"}
+                       3 {:masc "-em" :fem "-em" :neut "-em"}}
                   :pl {1 {:fem "-as " :masc "-as"} 
-                       2 {:masc "-os" :neut "-a"}}} 
+                       2 {:masc "-os" :neut "-a"}
+                       3 {:masc "-es" :fem "-es" :neut "-a"}}} 
 
             :abl {:sg {1 {:fem "-a" :masc "-a"} 
-                       2 {:masc "-o" :neut "-o"}}
+                       2 {:masc "-o" :neut "-o"}
+                       3 {:masc "-e" :fem "-e" :neut "-e"}}
                   :pl {1 {:fem "-is" :masc "-is"} 
-                       2 {:masc "-is" :neut "-is"}}} 
+                       2 {:masc "-is" :neut "-is"}
+                       3 {:masc "-ibus" :fem "-ibus" :neut "-ibus"}}} 
 
+            
             :voc {:sg {1 {:fem "-a" :masc "-a"}
-                       2 {:masc "-e" :neut "-um"}}
+                       2 {:masc "-e" :neut "-um"}
+                       3 {:masc "" :fem "-us" :neut "-us"}} ;the vocative is the same as nominative except for -us/-ius words
                   :pl {1 {:fem "-ae" :masc "-ae"}
-                       2 {:masc "-i" :neut "-a"}}}})
+                       2 {:masc "-i" :neut "-a"}
+                       3 {:masc "-es" :fem "-es" :neut "-a"}}}})
 
 (def vowels ["a" "e" "i" "o" "u"])
 
