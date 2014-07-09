@@ -173,42 +173,6 @@
             (recur (rest seq) (conj new line))))
         (reverse new)))))
 
-;using a map of start and end is the best way to improve this. 
-;The reliability of this function seems to depend entirely on the regex you give it. If blank-line is a pattern, then, and throgh-end? is true, then itll smush that new-line right into 
-;THIS IS STILL ADDING BLANKLINES IF THAT'S AN END PATTERN! i assume it'll do this for more than just blanks, wreaking more havoc than just off-indexes. this gives me horribly confusing results! gotto smoove it out!
-
-(defn smush-chunk2 [text-seq start end through-end?]
-  "Makes a single line out of a chunk from start to end. Adjacent starts will never be joined."
-  (if (or  (nil? start) (nil? end))
-    text-seq
-    (loop [seq text-seq
-           new ()
-           chunk []]
-      (if (empty? seq) ;if chunk isnt empty too then add it onto new before returning
-        (if-not (empty? chunk)
-          (reverse (conj new (string/join " " (remove empty? chunk))))
-          (reverse new))
-        (let [line (first seq)]
-          (cond (and (re-matches start line) (empty? chunk)) ;so what if its a start and it isnt empty? 
-                (recur (rest seq) new (conj chunk line))
-
-                ;do I need something for if its a start but chunk isnt empty either?
-                (re-matches start line)
-                (recur (rest seq) (conj new (string/join " " (remove empty? chunk))) (conj [] line))
-
-                (and (not (re-matches end line)) (not (empty? chunk)))
-                (recur (rest seq) new (conj chunk line))
-
-                (and  (re-matches end line) through-end? (not (empty? chunk)))
-                (recur (rest seq) (conj new (string/join " " (remove empty?  (conj chunk line)))) [])
-
-                (and (re-matches end line) (not (empty? chunk))) ;what if it matches and chunk is empty? 
-                (recur (rest seq) (conj  (conj new (string/join " " (remove empty? chunk))) line) []) 
- 
-                ;need antother case here? 
-
-                :else (recur (rest seq) (conj new line) chunk)))))))
-
 ;through-end needs to be part of patterns so each pattern gets to choose. Right now it'll gobble up blanks as ends. Map should be {start [end through?]}
 ;this is working sometimes it seems, but not on my toytests which get me an empty list too often. 
 ;there seems to be a problem with it deleting things, and it also grabs too much in the quran, whether or not I smush-through. 
@@ -224,15 +188,11 @@
              new ()
              chunk []
              end nil]
-        ;(println (count seq))
         (if (empty? seq)
           (if (empty? chunk)
             (reverse new)
             (reverse (conj new (string/join " " (remove empty? chunk))))) 
           (let [line (first seq)]
-                                        ;rethink this since re-matches-some gives the match, not the pattern
-           ; (println starts ends)
-            ;(println chunk end)
             (cond (and (re-matches-some starts line) (empty? chunk))
                   (let [match-pos (position starts (re-matches-some starts line))
                         match-val (get ends match-pos)]
