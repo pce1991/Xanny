@@ -47,14 +47,10 @@
   "checks to see if an element is a regex pattern." 
   (= java.util.regex.Pattern (type pat)))
 
-(defn string-seq [str]
-  "returns a sequence of all the characters in the string."
-  (seq (char-array str)))
-
 ;change to newline?
 (defn newline? [str]
   (if (= (count str) 1)
-    (= (first (string-seq str)) \return)
+    (= (first (seq str)) \return)
     false))
 
 (defn string-contains-int [str]
@@ -121,6 +117,9 @@
 
 (defn first-char [str]
   (first (seq str)))
+
+(defn string-seq [string]
+  (map str (seq string)))
 
 (defn trim-punctuation [string]
   (loop [s (reverse (seq string))]
@@ -223,3 +222,14 @@
 ;=============================================
 ;get the count of everything mathching a regex in, like how many lines end in a period.
 
+(defn wrand
+"given a vector of slice sizes, returns the index of a slice given a
+random spin of a roulette wheel with compartments proportional to
+slices."
+[slices]
+(let [total (reduce + slices)
+      r (rand total)]
+  (loop [i 0 sum 0]
+    (if (< r (+ (slices i) sum))
+      i
+      (recur (inc i) (+ (slices i) sum))))))
