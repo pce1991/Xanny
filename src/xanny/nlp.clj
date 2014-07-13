@@ -57,12 +57,12 @@
               map addition))
 
 (defn n-gram [n coll]
-  (patition n 1 coll))
+  (partition n 1 coll))
 
 ;go through each letter of every word, whenever a letter is encountered that isnt in the map, add it to the map, you then keep track of the current letter, and see what follows it. So you add H to the map, setting current letter to H, then an e is encountered so you add it to H in map while incrementing the count if its already there, then set the current letter to E to see what follows it. Don't set the current letter if its the last char in a word. 
 ;use starts and stops
 ; use the given n-gram/partition function to patition the words first. Doing that 
-(defn make-n-gram [words-vector]
+(defn letter-bi-gram [words-vector]
   (loop [words (map s/upper-case  words-vector)
              map {:START {} :STOP {}}]
     (if (empty? words)
@@ -76,5 +76,7 @@
                  (if started? ;if it isnt started then add the first letter to start, but dont move past it yet. 
                    (recur (rest characters) true (merge-gram m {(first characters) {(second characters) 1}}))
                    (recur characters true (merge-gram m {:START {(first characters) 1}})))))))))
+
+
 
 ;;; generate-names. the liklihood of each letter is dependent on its frequency, given the frequency of the last word, which I think is the probability of the first and second / the prob of first. 

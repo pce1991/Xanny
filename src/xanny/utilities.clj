@@ -20,6 +20,13 @@
 (defn all-type? [coll type]
   (every? (fn [e] (instance? type e)) coll))
 
+(defn concatv 
+  "Concat that returns a vector instead of a lazy-seq."
+  ([] [])
+  ([x] [into [] x])
+  ([x y] (into [] (concat x y)))
+  ([x y & r] (into [] (concat x y r))))
+
 ;=============================================
 ;STRING TRIMMING
 ;=============================================
@@ -87,6 +94,7 @@
     false))
 
 ;consider this returning false if it's wore than two spaces over.
+;;; this should be changed to return true only if its notched and nothing more. None of these do that right now, and I've been using them as if they don't tho, so it might cause problems if I change it.
 (defn notched? [str]
   (if (>= (count str) 2)
     (= (subs str 0 2) "  ")

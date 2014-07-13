@@ -1,0 +1,1 @@
+["filia" "fama" "philosophia" "iuvo" "semper" "terreo" "cura" "si"]

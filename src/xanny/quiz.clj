@@ -8,7 +8,6 @@
 
 ;these are the [XXXXX] codes: AGE, AREA, GEO, FREQ, SOURCE
 ;file://localhost/Users/PCEye/Downloads/words-1.97Ed/wordsdoc.htm#Dictionary Codes
-;needs to handle words with multiple definitions, like malus
 (defn latin-dict []
   (with-open [rdr (clojure.java.io/reader  "text-files/latin-dict.txt" :encoding "UTF-8")]
     (loop [seq (t/insert-line-if (line-seq rdr) "" #".+\[.+\]" :above)
@@ -19,28 +18,37 @@
         (cond (empty? seq)
               map
               (and (empty? line) (not (empty? entry)))
-              (recur (rest seq) (conj map entry) [])
+              (recur (rest seq) ;(conj map entry) [] ;might not work with map instead of vector
+                     (merge-with  (fn [e contents] (conj contents (merge-with concatv contents e))) 
+                                  map (hash-map  (entry 0) (entry 1))) [])
               (and (empty? entry) (not (empty? line)))
-              (recur (rest seq) map [(first-word line) {:forms (rest-words line) :entry nil}])
+              (recur (rest seq) map [(first-word line) {:forms [(rest-words line)] :entry nil}])
               (empty? line)
               (recur (rest seq) map entry)
-              :else (recur (rest seq) map 
-                           [(first entry) (assoc (second entry) :entry
-                                            (s/join " " [(:entry (second entry)) line]))]))))))
+              :else (recur (rest seq) map ;GACK
+                           [(first entry) (assoc (second entry) :entry 
+                                                 [(s/join " " [(first (:entry (second entry))) line])])]))))))
 
 (def dict (latin-dict))
 
 
 ;have a different vocab lists for verbs
-(def vocab {:nouns (s/split "agricola puella nihil fama forma fortuna ira nauta patria pecunia philosophia poena poeta porta puella rosa sententia vita ager amicus femina filia filius numerus populus puer sapientia vir avarus pauci basium bellum consillium cura donum exitium magister mora oculus officium otium periculum remedium Romanus adulescentia animus caelum culpa gloria verbum deus discipulus insidiae liber tyrannus vitium " #"\ ")
-            :verbs (s/split "cogito amo debeo do erro laudo moneo salveo servo conservo terreo valeo habeo satio video voco iuvo tolero sum" #"\ ")
-            :adjectives (s/split "pulcher non antiquus magnus multus tuus meus sanus plenus salvus secundus perpetuus"#"\ ")
+(def vocab {:nouns (s/split "agricola puella nihil fama forma fortuna ira nauta patria pecunia philosophia poena poeta porta puella rosa sententia vita ager amicus femina filia filius numerus populus puer sapientia vir avarus pauci basium bellum consilium cura donum exitium magister mora oculus officium otium periculum remedium Romanus adulescentia animus caelum culpa gloria verbum deus discipulus insidiae liber tyrannus vitium amor carmen civitas corpus homo labor littera mos nomen pax regina rex tempus terra uxor virgo virtus" #"\ ")
+            :verbs (s/split "cogito amo debeo do erro laudo moneo salveo servo conservo terreo valeo habeo satio video voco iuvo tolero sum neco audeo" #"\ ")
+            :adjectives (s/split "pulcher non antiquus magnus multus tuus meus sanus plenus salvus secundus perpetuus novus"#"\ ")
             :adverbs (s/split "saepe semper bonus humanus bellus malus parvus stultus verus hodie ibi nunc quare ubi" #"\ ")
-            :other (s/split "si" #"\ ")})
+            :other (s/split "si post sub" #"\ ")})
 
 (defn all-vocab []
   (flatten (vals vocab)))
 
+(def missed-words-path "text-maps/missed-words.clj")
+
+;write the vocab words to a file when you get them wrong.
+(defn save-missed-words [missed-words]
+  (spit missed-words-path (with-out-str (pr  missed-words)))) ;
+
+(def recent-misses (read-string  (slurp missed-words-path)))
 
 ;keep a list of words chosen, so the list of words decrements each time. keep a map of correct and wrong guesses, then let you replay with the words you got wrong. 
 ;save attempts to a file, and access the most recent entry, or overwrite it each time, or overwrite the entry for each set, so it separates noun attempts from verb ones. 
@@ -49,9 +57,15 @@
   (loop [words-left words
          wrong-answers []]
     (if (empty? words-left)
-      (if (empty? wrong-answers)
-        wrong-answers ;not working
-        (println wrong-answers "\nBeginning quiz with missed words")) 
+      (do 
+        (println "Retry or save missed words for next time? y/n")
+        (if-not (re-matches #"(?i)y.*" (read-line))        ;this isnt right at all.
+          (do 
+            (save-missed-words wrong-answers)
+            (println wrong-answers)) 
+          (do  
+            (println wrong-answers "\nBeginning quiz with missed words")
+            (vocab-quiz wrong-answers)))) 
       (let [word (rand-nth words-left)
             pick (dict word)]
         (println "The word is:" word "; it's forms being" (:forms pick))
@@ -167,6 +181,7 @@
         (println input "est corectio!")
         (println "Wrong! Answer is" answer)))))
 
+;add a quiz for irregular forms; maybe this gives a form and you have to answer what its a form of. 
 (defn quiz-loop [nth-decl]
   (loop []
     (case-quiz nth-decl)

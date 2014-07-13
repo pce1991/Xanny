@@ -178,8 +178,8 @@
 ;there seems to be a problem with it deleting things, and it also grabs too much in the quran, whether or not I smush-through. 
 ;allow patterns to be functions instead of just regex? 
 ;still needs some touching up I think, but the main error is fixed.
-(defn smush-chunk [text-seq patterns through-end?]
-  "Takes a map of starts and ends, and concatenates everything between them, stopping at, or going through the end based on the boolean supplied. Adjacent starts are never joined."
+(defn smush-chunk [text-seq patterns starts-reset? through-end?]
+  "Takes a map of starts and ends, and concatenates everything between them, stopping at, or going through the end based on the boolean supplied. Adjacent starts can either reset the chunk, or get smushed in until the end correpsonding the first start is found."
   (if (nil? patterns)
     text-seq
     (let [starts (into [] (keys patterns)) ;put these into vectors so I can use get on them.
@@ -193,15 +193,20 @@
             (reverse new)
             (reverse (conj new (string/join " " (remove empty? chunk))))) 
           (let [line (first seq)]
-            (cond (and (re-matches-some starts line) (empty? chunk))
+            (cond (and (re-matches-some starts line)  (empty? chunk))
                   (let [match-pos (position starts (re-matches-some starts line))
                         match-val (get ends match-pos)]
                     (recur (rest seq) new (conj chunk line) match-val))
                                         ;if it meets another start in the chunk, it begins again. 
-                  (re-matches-some starts line)
+                  (and  (re-matches-some starts line) (not (empty? chunk)) starts-reset?)
                   (let [match-pos (position starts (re-matches-some starts line))
                         match-val (get ends match-pos)]
                     (recur (rest seq) (conj new (string/join " " (remove empty? chunk))) (conj [] line) match-val))
+                  ;; if start-reset is false then it'll smush the new mathching start into the chunk, preserving the first matching end
+                  (and (re-matches-some starts line) (not (empty? chunk)))
+                  (let [match-pos (position starts (re-matches-some starts line))
+                        match-val (get ends match-pos)]
+                    (recur (rest  seq) new (conj chunk line) end))
                                         ;if its an end going through, also make sure chunk isnt empty, because of it is and an end is met then its just conjed onto new and chunk stays empty. 
                   (and end through-end? (re-matches end line) (not (empty? chunk)) )
                   (recur (rest seq) (conj new (string/join " "(remove empty? (conj chunk line)))) [] nil)
@@ -253,7 +258,7 @@
 ;this is useful for getting rid of superfluos ACT I SCENE 4, when I only need to know the act the first time it appears. incorporate into clear-text. 
 ;make this work for multiple patterns
 (defn lop-lines
-  "Deletes the target pattern in a string if it matches the general, but not the specific pattern. Target is a pattern to split by."
+  "Deletes the target pattern in a seq of strings if it matches the general, but not the specific pattern. Target is a pattern to split by, preserving  the part of the line not matching the target."
   [text-seq general-pat specific-pat target]
   (if (not (or  (nil? general-pat) (nil? specific-pat) (nil? target))) 
     (loop [seq text-seq
@@ -307,9 +312,13 @@
                   (recur (rest seq) (conj new (string/join "" [space-chunk line])) true)
                   :else (recur (rest seq) (conj new line) begun?))))))))
 
+;;; this needs to take a map of starts and stops, use on antony and cleopatra on acts that are too far indented, which causes problems with the mapping I've set up using notched? 
+;;; right now I need this to pull a specific pattern of line, not a chunk, so it should pull up to the stop, not through in. 
 (defn pull-lines 
-  "Pulls away n number of spaces to all lines, unless there are < n spaces, in which case it is just trimmed."
-  [text-seq start stop n])
+  "Pulls away n number of spaces from all lines, unless there are < n spaces, in which case it is just trimmed."
+  [text-seq patterns n]
+  
+  )
 
 ;let this take a map of regex keys and line values. Each time a key is found in the text, it's replaced with the line mapped to it. Use this in Shakespeare for replacing weird scene and act markers. The problem is that the line will have to be specific, but I want it to be general, so {#"ACT_.*" "ACT x"} So that it preserves whatever the number is. Maybe use a sentence-rest which will give me everthing after the regex pattern
 (defn replace-lines [text-seq replacements])
@@ -347,6 +356,7 @@
               :else (recur (rest seq) (conj new line))))))
 
 ;include this in clear-text after I remove something to get it down to parameter limit. 
+;;; modify to work with multiple starts and ends.
 (defn cut-gap-between [text-seq start end]
   "Removes everything between start and end."
   (if (nil? start)
@@ -365,37 +375,29 @@
                 (recur (rest seq) (conj new line) started?)
                 :else (recur (rest seq) new started?)))))))
 
-;just pass in nil for cut-start and until if you dont need anything cut
-;ugly as sin. MAKE SURE THE ORDER IS RIGHT, it'll be unpleanant otherwise.
-;this order might not work: it should split and collapse lines, then remove, then move. This might not work for everything though... this fucked it all up, I need to find the right order for collapsing functions
-;use threading macro, much easier to read. 
-;it seems like smush and collapse/fold fail to work in tandem. WHY? maybe get rid of fold and collapse in favor of smush. It works in Whitman, but not the Quran, WHY? 
-(defn clear-text [text-path start end toss? cut-start cut-until remove-pats split-this split-at lop-gen lop-spec
-                  lop-split  smush-start smush-end smush-through? fold-pred duplicate-pats push-start
+
+;use threading macro, much easier to read, or at least for some.
+;;; this order may not be right, but messing with it has been devastating in the past. lets see how far it carries me.
+;;; I need to condense these to make room for pulling lines, or move this to a map system. moving all the start and ends into a map of starts and ends will help. It'll require recoding a lot of these tho.
+(defn clear-text [text-path start end toss? cut-start cut-until remove-pats cleave-this cleave-at lop-gen lop-spec
+                  lop-split  smush-start starts-reset? smush-through? duplicate-pats push-start
                   push-stop push-n]  
-  (fold-lines 
-   (push-lines 
-    (remove-duplicates 
-     (smush-chunk 
-      ;collapse-lines 
-      (cleave-lines
-       (lop-lines 
-        (remove-lines
-         (cut-consecutive-lines 
-          (cut-chunk 
-           (trim-back (trim-front text-path start toss?) end toss?) ;trim front is the root, converting path to seq
-           cut-start cut-until))
-         remove-pats)
-        lop-gen lop-spec lop-split) 
-       split-this split-at)
-                                        ;collapse-pat
-      
-      smush-start ;smush-end 
-      smush-through?
-      )
-     duplicate-pats)
-    push-start push-stop push-n)
-   fold-pred))
+  (push-lines 
+   (remove-duplicates 
+    (smush-chunk 
+     (cleave-lines
+      (lop-lines 
+       (remove-lines
+        (cut-consecutive-lines 
+         (cut-chunk 
+          (trim-back (trim-front text-path start toss?) end toss?) ;trim front is the root, converting path to seq
+          cut-start cut-until))
+        remove-pats)
+       lop-gen lop-spec lop-split) 
+      cleave-this cleave-at)
+     smush-start starts-reset? smush-through?)
+    duplicate-pats)
+   push-start push-stop push-n))
 
 
 ;create new file out of a segment of a file. give a start and a stop, either as words, lines
@@ -450,7 +452,7 @@ the str matches the pattern, or it returns function applied to str."
 (defn map-text 
   [text-path volume? book? part? section? segment? map-section-marker? ;either t or f. use 1 or 0 instd
    & {:keys [start end toss? cut-start cut-until remove-pats split-this split-at lop-gen lop-spec lop-split
-             collapse-pat smush-start smush-end smush-through? fold-pred duplicate-pats push-start push-stop push-n] 
+             collapse-pat smush-start starts-reset? smush-through? fold-pred duplicate-pats push-start push-stop push-n] 
       :or {start #"Produced by.*|This etext was prepared by.*"
            end #".*(?i)End of\s?(the)? Project Gutenberg.*" 
            toss? true
@@ -462,9 +464,8 @@ the str matches the pattern, or it returns function applied to str."
            lop-gen nil
            lop-spec nil
            lop-split nil
-           ;collapse-pat nil
            smush-start nil
-           smush-end nil
+           starts-reset? true
            smush-through? false
            fold-pred nil
            duplicate-pats nil
@@ -473,7 +474,7 @@ the str matches the pattern, or it returns function applied to str."
            push-n 0}}] ;this isn't matching all
   "returns a map of the text with keywords representing part, section, and segment.s"
   (loop [seq (clear-text text-path start end toss? cut-start cut-until remove-pats split-this split-at lop-gen
-                         lop-spec lop-split  smush-start smush-end smush-through? fold-pred
+                         lop-spec lop-split  smush-start starts-reset? smush-through? fold-pred
                          duplicate-pats push-start push-stop push-n) 
          map {}
          volume 0
@@ -689,8 +690,11 @@ the str matches the pattern, or it returns function applied to str."
           (if (uppercase? line)
             (recur (rest seq)
                    (merge-with concat map {line {:pronunciation (second seq)}})) ;add a versions thing so horse n isnt lost to v. 
-            (recur (rest seq) map) ;normally would add to definition
+            (recur (rest seq) map) ;normally would add to definition. Separate into pronunciation, word-type, etymology, then entry, which should be a map of numbers and keys like {1 "toethou" :a "sometimes..."}
+            ;; to get just the pronunciation split the string at the first space and trim off the last char, always a comma I think
 ))))))
+
+;I want to take this and make sure its doesnt overwrite multiple entries, 
 
 ;so some words are not a blank apart, this is a problem. maybe check if last char is a period? it its a blank line or ends with a peiod, then map. make sure this is an okay assumtion. if the count of ending peiods is the same as the number of entries, then it's probably safe. revise this by ignoring linebreaks, and mapping/starting a new entry only when a sentence-end? in found. 
 ;ignore lines that start with a number if there is no entry, this is a problem for agricola
@@ -726,8 +730,6 @@ the str matches the pattern, or it returns function applied to str."
 ;==========================================================================================
 
 ;(write-map "text-maps/texts-maps.clj" texts)
-
-;FUCK THESE! I can use select-keys in one general function which will return a sub-map
 
 ;these all rely on text being mapped properly. it'll fail if some indexes are not mapped, such as
 ;if it fails to map a first segment, but maps the rest, it'll fail to retrieve it even though
@@ -880,7 +882,7 @@ the str matches the pattern, or it returns function applied to str."
                                                         :start #"THE CANTEBURY TALES."
                                                         :end #"THE END OF THE CANTEBURY TALES"
                                                         )}
-;            I dont think this is mapping segments and secions right. 
+            ;; ignoring case for splitting acts messed things up like "ROS. our act is to...", I don't think there are any lowercase ACTS tho, so shouldn't be a problem. This has caused some problems though! and in HAMLET!Antony and cleopatra, romeo and juliet, all over the place. Part of the problem may be "SCENE- London" and such
             "Shakespeare" {"Plays" '(map-text "text-files/shakespeare/shakespeare.txt" 
                                              (fn [ln] (and (uppercase? ln) (not (notched? ln))
                                                            (not (or (re-matches #"ACT.*" ln)
@@ -905,23 +907,22 @@ the str matches the pattern, or it returns function applied to str."
                                              :cut-until 7
                                              :remove-pats [#"ACT_.*" #"SC_.*"]
                                              ;I need to split stage directions from lines as well. 
-                                             :split-this #".*(?i)ACT [I II III IV V].*" ;split the odditiets too.
+
+                                             :split-this #"\s*(?i)ACT [I II III IV V].*" ;split the odditiets too.
                                              :split-at #"\. "
                                              :duplicate-pats [#"THE COMEDY OF ERRORS" #"THE TEMPEST"] ;others?
-                                             ;think of how to do this with smush-chunk. 
-                                             
-                                             ;; :fold-pred(fn [ln] (and (not (re-matches #"ACT.*|(?i)SCENE.*" ln)) 
-                                             ;;               (or (justified? ln) (left-justified? ln)))).
-                                             ;numbering is ALL OFF! cause of swallowing return? 
-                                             :smush-start {#"\s+Enter .*" #"" ;will this gobble up blanks and put off numbering? Need to mark re-enter, some Enters are left-justified, 
-                                                           #"\s{12,}.*" #"\s{2}\S+|" };are there other ends? what about where lines are more than two over? 
+                                             :smush-start {#"\s+Enter .*" #"" 
+                                                           #"\s{14,}.*" #"\s{2}\S.*|" } ;more starts needed I'm sure.
+                                             :starts-reset? false
                                              :smush-through? false
                                         ;lop should work now that the spec and split patterns are right. 
-                                             :lop-gen #"(?i).*ACT [I IV V]+\.?.+" 
-                                             :lop-spec #"(?i).*ACT [I IV V]+\.? SCENE [1 I]\.?|(?i)ACT [I IV V]+\.? PROLOGUE.*"
-                                             :lop-split #"ACT [I IV V]+\.?" ;should work now
+                                             :lop-gen #"\s*(?i)ACT [I IV V]+\.?.+" 
+                                             :lop-spec #"\s*(?i)ACT [I IV V]+\.? SCENE [1 I]\.?|\s*(?i)ACT [I IV V]+\.? PROLOGUE.*"
+                                             :lop-split #"\s*ACT [I IV V]+\.?" ;why isnt this case in-sensitive?
                                              :push-start #"THE COMEDY OF ERRORS"
-                                             :push-stop #"THE END" :push-n 2)
+                                             :push-stop #"THE END" :push-n 2
+                                             ;; for this to work properly I need to pull lines on acts that are left-justified.
+                                             )
 
                            "Sonnets"  '(map-text "text-files/shakespeare.txt" nil nil nil integer-string? 
                                                 (fn [line] ;(justified? line) ;kills heap space somehow
@@ -929,6 +930,7 @@ the str matches the pattern, or it returns function applied to str."
                                                 true :start #"1609" :end #"1603" :toss? true 
                                                 :cut-start #"<<THIS ELECTRONIC VERSION OF THE COMPLETE WORKS OF WILLIAM"
                                                 :cut-until 7)}
+            ;; remove the url and title junk, and kill the blak space between two lines if they are indented instead of notched. I can use cut-gap-between for this, but it isnt in clear-text yet.
             "Edmund Spenser" {"The Faerie Queene" {}} 
             ;;"Spencer" {}
             "John Milton" ;map his complete works, or split this up, which makes more sense: easier to access PL than volume 4 or something. DUH! map multiple texts by just setting a start and end point! do for shakespeare!
