@@ -4,12 +4,12 @@
            [clj-wordnet.core]
            [xanny.utilities]
            )
-     (:require [clojure.string :as s]))
-;==========================================================================================
-;==========================================================================================
+     (:require [clojure.string :as string]))
+;========================================================================================
+;========================================================================================
 ;OPENNLP
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 
 (def get-sentences (make-sentence-detector "NLP/models/en-sent.bin"))
 (def tokenize (make-tokenizer "NLP/models/en-token.bin"))
@@ -26,19 +26,19 @@
 ;GACK though. I'd like something a lot more useful than :chunk and :tag, much better to lookup
 ;by :PP :NNP etcetera. or am I misguided? 
 
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 ;WORDNET
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 (def wordnet (make-dictionary "NLP/WordNet-3.0"))
 
 
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 ;MARKOV GENERATION
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 
 ;for trigrams i want how many times each word follows another, but base probabilities on
 ;the two previonus words barks | the, dog
@@ -49,7 +49,8 @@
 ;this is what i want: x might follow y %50 of the time, and z follows x %25 of the time, but 
 ;%10 if x follows y, i need word pairs for that, or how do i represent it? 
 
-(def names ["Hector" "Odysseus" "Achilles"])
+(def names (string/split "Abas Ableros Acamas Adamas Adrestus Adrestus Aenius Aesepus Aesymnus Agastrophus Agelaos Agelaus Alastor Alcandrus Alcathous Alcmaon Amopaon Amphiclus Amphimachus Amphion Amphoterus Anchialus Antiphates Antiphus Aphareus Apisaon Archeptolemos Areilycus Areithous Aresilaus Aretaon Aretus Asaeus Ascalaphus Asius Asteropaeus Astyalus Astynous Astypylus Atymnius Autonous Axylus Bathycles Bienor Calesius Cebriones Charops Chersidamas Chromius Cleitus Clonius Cocranus Coeranus Crethon Croesmus Daitor Damasus Dardanus Deicoon Democo Demoleon Demouchos Deucalion Diores Dolon Dolops Dresus Dryops Echeclus Echemmon Echepolus Echius Eioneus Elasus Elatus Elephenor Eniopeus Ennomus Epaltes Epeigeus Epistor Erylaus Erymas Euchenor Euippus Euphorbus Gorgythion Halius Harpalion Hector Helenus Hippodamas Hippolochus Hippomachus Hipponous Hippotion Hypeirochus Hypeiron Hyperenor Hypsenor Iamenus Iasus Ilioneus Imbrius Ipheus Iphidamas Iphinous Iphition Isus Laogonus Leocritus Leucus Lycaon Lyco Lycophontes Lycophron Maris Mecistus Medon Melanippus Melanippus Melanthus Menesthes Menesthius Menon Mermerus Mnesus Molion Morys Mulius Mydon Noemon Odius Oenomaus Oenomaus Oileus Ophelestes Opheltius Opites Oresbius Orestes Ormenus Orsilochos Orus Othryoneus Otus Pandarus Patroclus Pedaeus Peirous Peisander Perimus Periphas Periphetes Phaestus Phalces Phegeus Phereclus Phlaemenes Phylacus Pidytes Podes Polydorus Polyidus Polymelus Promachus Pronous Protho Prytanis Pylantes Pylon Pyraechmes Pyris Rhigmus Sarpedon Satnius Scamandrius Scedius Schedius Socus Sthenelaus Stichius Teuthras Thersilochus Thestor Thoas Thoon Thrasius Thrasymedes Thymbraeus Tlepolemus Trechus Tros Xanthus" #" " ); ["Hector" "Odysseus" "Achilles" "Ajax" "Hercules" "Paris"]
+  )
 
 (defn merge-gram [map addition]
   "The addition will be a map of {new-letter {following-letter count}} and will be merged onto the map by conjing the new-letter with its contents in the map, and merging the following letter with the count of it in new-letter in the map."
@@ -61,10 +62,10 @@
 
 ;go through each letter of every word, whenever a letter is encountered that isnt in the map, add it to the map, you then keep track of the current letter, and see what follows it. So you add H to the map, setting current letter to H, then an e is encountered so you add it to H in map while incrementing the count if its already there, then set the current letter to E to see what follows it. Don't set the current letter if its the last char in a word. 
 ;use starts and stops
-; use the given n-gram/partition function to patition the words first. Doing that 
+; use the given n-gram/partition function to patition the words first. 
 (defn letter-bi-gram [words-vector]
-  (loop [words (map s/upper-case  words-vector)
-             map {:START {} :STOP {}}]
+  (loop [words (map string/upper-case  words-vector)
+             map {:START {}}]
     (if (empty? words)
       map
       (recur (rest words) 
@@ -72,11 +73,35 @@
                     started? false
                     m map]
                (if (= (count characters) 1)
-                 (merge-gram m {:STOP {(first characters)  1}})
+                 (merge-gram m {(first characters) {:STOP 1}})
+;                 (merge-gram m {:STOP {(first characters)  1}})
                  (if started? ;if it isnt started then add the first letter to start, but dont move past it yet. 
                    (recur (rest characters) true (merge-gram m {(first characters) {(second characters) 1}}))
                    (recur characters true (merge-gram m {:START {(first characters) 1}})))))))))
 
+(defn percentage [n total]
+  (* 100.0 (/ n total)))
 
+;this will replace every int count with a decimal percentage
+(defn generate-percentages [letter-map]
+  "Replaces all the counts in a map with the percentage of their frequency."
+  (zipmap (keys letter-map)  
+          (for [following-letter-map (vals letter-map)]
+            (into {} (for [letter following-letter-map]
+                       [(first letter) (percentage (second letter) (reduce + (vals following-letter-map)))])))))
 
 ;;; generate-names. the liklihood of each letter is dependent on its frequency, given the frequency of the last word, which I think is the probability of the first and second / the prob of first. 
+
+(defn pick-letter [following-letter-map]
+  "Takes the map of following letter frequencies and returns a letter based on the percentage."
+  (let [letters (into [] (keys following-letter-map))
+        counts (into [] (vals following-letter-map))]
+    (get letters (wrand counts))))
+
+;;; needs to cut off at certain point to avoid long names, and extend short names like "ES" 
+(defn generate-name [letter-map]
+  (loop [word [(pick-letter (:START letter-map))]]
+    (let [next-letter (pick-letter (letter-map (last word)))] 
+      (if (= :STOP next-letter)
+        (string/join "" word)
+        (recur (conj word next-letter))))))

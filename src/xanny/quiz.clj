@@ -4,6 +4,8 @@
             [clojure.string :as s]
             [clojure.pprint :refer :all]))
 
+;;; ADD SOME ENGLISH QUIZZES, AND OLD ENGLISH!
+
 ;create a latin dictionary quiz. it'll supply one true definiton, and 3 other random ones. It'll also tell you what words match those false answers 
 
 ;these are the [XXXXX] codes: AGE, AREA, GEO, FREQ, SOURCE
@@ -33,14 +35,12 @@
 
 
 ;have a different vocab lists for verbs
-(def vocab {:nouns (s/split "agricola puella nihil fama forma fortuna ira nauta patria pecunia philosophia poena poeta porta puella rosa sententia vita ager amicus femina filia filius numerus populus puer sapientia vir avarus pauci basium bellum consilium cura donum exitium magister mora oculus officium otium periculum remedium Romanus adulescentia animus caelum culpa gloria verbum deus discipulus insidiae liber tyrannus vitium amor carmen civitas corpus homo labor littera mos nomen pax regina rex tempus terra uxor virgo virtus" #"\ ")
-            :verbs (s/split "cogito amo debeo do erro laudo moneo salveo servo conservo terreo valeo habeo satio video voco iuvo tolero sum neco audeo" #"\ ")
+(def vocab {:nouns (s/split "agricola puella nihil fama forma fortuna ira nauta patria pecunia philosophia poena poeta porta puella rosa sententia vita ager amicus femina filia filius numerus populus puer sapientia vir avarus pauci basium bellum consilium cura donum exitium magister mora oculus officium otium periculum remedium Romanus adulescentia animus caelum culpa gloria verbum deus discipulus insidiae liber tyrannus vitium amor carmen civitas corpus homo labor littera mos nomen pax regina rex tempus terra uxor virgo virtus copia frater laus libertas ratio sciptor soror victoria " #"\ ")
+            :verbs (s/split "cogito amo debeo do erro laudo moneo salveo servo conservo terreo valeo habeo satio video voco iuvo tolero neco audeo ambulo tracto ago demonstro disco doceo duco gero scribo traho vinco " #"\ ")
             :adjectives (s/split "pulcher non antiquus magnus multus tuus meus sanus plenus salvus secundus perpetuus novus"#"\ ")
-            :adverbs (s/split "saepe semper bonus humanus bellus malus parvus stultus verus hodie ibi nunc quare ubi" #"\ ")
-            :other (s/split "si post sub" #"\ ")})
+            :adverbs (s/split "saepe semper bonus humanus bellus malus parvus stultus verus hodie ibi nunc quare ubi numquam tamen" #"\ ")
+            :other (s/split "si post sub dum ad ex" #"\ ")})
 
-(defn all-vocab []
-  (flatten (vals vocab)))
 
 (def missed-words-path "text-maps/missed-words.clj")
 
@@ -137,7 +137,9 @@
               :passive {}})
 
 (def conjugations {1 {:ending "-are" :stem "-a-"}
-                   2 {:ending "-ere" :stem "-e-"}})
+                   2 {:ending "-ere" :stem "-e-"}
+                   3 {:ending "-ere " :stem "-e-"} ;need to mark these as long. 
+                   })
 
 (def moods {:imperative "-te"})
 
@@ -145,7 +147,9 @@
   {:sg  (zipmap [1 2 3] (subvec endings 0 3))
    :pl (zipmap [1 2 3] (subvec endings 3 6))})
 
-(def tenses {:present (make-endings ["-o" "-s" "-t" "-mus" "-tis" "-nt"]) 
+;how should this work? do I show how the stem changes like the lack of -e- in third conjugation, and -i- replacing it, or the -ba- -bi- to denote imperfect and future respectively. 
+(def tenses {:present {1 (make-endings ["-o" "-s" "-t" "-mus" "-tis" "-nt"])
+                       } 
              :future {1 2} ;show for each conjugation
              :imperfect {1 2}})
 
@@ -180,6 +184,8 @@
       (if (= input answer)
         (println input "est corectio!")
         (println "Wrong! Answer is" answer)))))
+
+;;; do more with this by taking a word, putting it in a certain case, and then giving it to user to guess the declension of the word. 
 
 ;add a quiz for irregular forms; maybe this gives a form and you have to answer what its a form of. 
 (defn quiz-loop [nth-decl]

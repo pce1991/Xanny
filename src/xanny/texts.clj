@@ -10,11 +10,11 @@
    [xanny.utilities]))
 ;translate my scheme code here mostly. might need to use some nlp stuff. 
 
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 ;PATHS
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 
 ;allow the user to navigate this. 
 ;adapt this to show all the folders too.
@@ -26,11 +26,11 @@
     (if (not (empty? (rest files)))
       (recur directory (rest files) (inc count)))))
 
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 ;WRITING to files
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 
 ;just spit it. don't use append because it'll just add an extra map not inside the texts map
 (defn write-map [path map]
@@ -678,7 +678,8 @@ the str matches the pattern, or it returns function applied to str."
             (fn [line] (and (not (empty? line)) (not (newline? line))))
             true :start nil :end nil))
 
-
+;;; so there are various inconsistencies, like the lack of syllabification or pronunciation on words like horse. 
+;;; this needs to be revised for multiple entries so that its a vector of maps, rather than a seq of pairs. 
 (defn map-dictionary []
   "returns a map with keys tied to seqs containing pronunciation key value vectors"
   (with-open [rdr (io/reader "text-files/websters.txt" :encoding "UTF-8")]
@@ -689,12 +690,14 @@ the str matches the pattern, or it returns function applied to str."
           map
           (if (uppercase? line)
             (recur (rest seq)
-                   (merge-with concat map {line {:pronunciation (second seq)}})) ;add a versions thing so horse n isnt lost to v. 
-            (recur (rest seq) map) ;normally would add to definition. Separate into pronunciation, word-type, etymology, then entry, which should be a map of numbers and keys like {1 "toethou" :a "sometimes..."}
-            ;; to get just the pronunciation split the string at the first space and trim off the last char, always a comma I think
+                   (merge-with vector map {line {:syllables (first (string/split (second seq) #" "))
+                                                 :pronunciation (second  (string/split (second seq) #" "))
+                                                 :pos "";this should be the rest of the line
+                                                 :etymology ""
+                                                 :entry ""}})) ;add a versions thing so horse n isnt lost to v. 
+            (recur (rest seq) map) ;normally would add to definition. Separate into pronunciation, word-type, etymology, then entry, which should be a map of numbers and keys like {1 "toethou" :a "sometimes..."}       
 ))))))
 
-;I want to take this and make sure its doesnt overwrite multiple entries, 
 
 ;so some words are not a blank apart, this is a problem. maybe check if last char is a period? it its a blank line or ends with a peiod, then map. make sure this is an okay assumtion. if the count of ending peiods is the same as the number of entries, then it's probably safe. revise this by ignoring linebreaks, and mapping/starting a new entry only when a sentence-end? in found. 
 ;ignore lines that start with a number if there is no entry, this is a problem for agricola
@@ -723,11 +726,11 @@ the str matches the pattern, or it returns function applied to str."
            :else (recur  (rest seq) map word (conj entry line))))
         map))))
 
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 ;MAP RETRIEVAL AND ACCESS
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 
 ;(write-map "text-maps/texts-maps.clj" texts)
 
@@ -764,6 +767,16 @@ the str matches the pattern, or it returns function applied to str."
 (defn dict-key-search [dict pat]
   (select-keys dict (into [] (for [[k v] dict
                                    :when (re-matches pat k)]
+                               k))))
+
+;;; currently broken! 7-23
+(defn dict-pronunciation-search [dict pat]
+  (select-keys dict (into [] (for [[k v] dict
+                                   :when 
+                                   (if (map? v) ;if its a map then just get the pron, if it isnt then its a vector of maps, so go thru each. 
+                                     (re-matches pat (v :pronunciation)) ;why null pointer here? v should always have pron if its a map. 
+                                     ;(re-matches pat ((get v 0) :pronunciation))
+                                     )] ;what if there's multiple entires in v, 
                                k))))
 
 (defn dict-entry-search [dict pat]
@@ -837,18 +850,18 @@ the str matches the pattern, or it returns function applied to str."
 (defn corpora-seq [corpora]
   )
 
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 ;SYSTEM
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 ;find a way to access maps in the working view, and load up new ones
 
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 ;UI
-;==========================================================================================
-;==========================================================================================
+;========================================================================================
+;========================================================================================
 
 ;take notes, highlight, link one text to another. 
 
