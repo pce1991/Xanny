@@ -1,0 +1,5 @@
+* Design
+** Texts
+*** References
+    {index {:content "" {text index, text2 index2}}}
+    - it should point out what word or substring references that tho. 
