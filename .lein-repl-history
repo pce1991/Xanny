@@ -1,9 +1,3 @@
-(marker? "THE BOOK" ["THE" "BOOK"])
-(marker? "    THE BOOK" indented?)
-(marker? "     THE BOOK" indented?)
-(marker? "      THE BOOK" indented?)
-(vec? [])
-(vector? [])
 exit
 '("THE" _)
 (into [] '("THE" _))
@@ -497,4 +491,10 @@ y
 (defn y [[a b c d e f g h i j k l m n o p q r s t u v w x y z] (println [a x]))
 (defn y [[a b c d e f g h i j k l m n o p q r s t u v w x y z]] (println [a x]))
 (defn z [a b c d e f g h i j k l m n o p q r s t u v w x y z] (println 1))
+quit
+(use 'xanny.text-processing)
+quit
+(use 'xanny.text_processing)
+(refresh)
+(re-matches-some [#"a" #"b"] "c")
 quit
