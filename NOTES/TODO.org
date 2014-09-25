@@ -53,6 +53,8 @@
 **** TODO Create a list of my vocab words, then look up in dictionary
 **** TODO Use clojure-script for online UI
      Build a repl like they use Poetroid.
+**** TODO CREATE TESTS TO RUN AUTOMATICALLY
+     There are too many texts for me to check each of them to make sure they still work after a change, so I should run some tests which would make my life a lot easier. 
 *** FOR CONSEDERATION
 **** New map design 
      {:vols {0 {:parts {1 {:title "GEN" :sec {1 {:title "chap 1"} 2 {:title  "chap 2" :contents {1 "In the beginning"}}}}}} 1 {}}}
@@ -64,7 +66,7 @@
      this sucks because quotes should be considered a whole unit, or at least be contextualized
 **** map sentences doesnt combine philoso-phy into one word.
 **** Its slower to load the map than to do the mapping... :(
-**** Why does it map an empty line, even when I've told it not to, but only the last one. 
+**** Why does it map an empty line, even when I've told it not to, but only the last one.
 *** TEXTS TO MAP
 **** Ulysses 
 	(what's wrong with current map again? that's right, two lines mark a new part! but there are other occurences where it does not! ugh. wait, that was gutenbergs, another uses ***** which is so much better, sometimes uses fewer to denote a change in character in that one episode.)

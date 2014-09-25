@@ -4,8 +4,8 @@
             [clojure.java.io :as io]
             )
   (:use
-        ;[clojure.string]
-        ;include clojure match
+                                        ;[clojure.string]
+                                        ;include clojure match
    [xanny.nlp]
    [xanny.utilities]))
 ;translate my scheme code here mostly. might need to use some nlp stuff. 
@@ -25,6 +25,7 @@
     (println count ": " (first files))
     (if (not (empty? (rest files)))
       (recur directory (rest files) (inc count)))))
+
 
 ;========================================================================================
 ;========================================================================================
@@ -90,9 +91,9 @@
               (reverse seq))
             (recur (rest seq)))))))
 
-
-(defn cut-consecutive-lines [text-seq]
-  "reduces consecutive blanklines to a single one, thus avoidung incrementing sections several times it a text."
+;;; this doesnt seem to play nicely if it comes before smush-chunk
+(defn cut-consecutive-blanks [text-seq]
+  "Reduces consecutive blanklines to a single one, thus avoidung incrementing sections several times it a text."
   (loop [seq text-seq
          new-seq ()]
     (cond (empty? seq) 
@@ -108,6 +109,12 @@
           :else (recur (rest seq)
                        (conj new-seq (first seq))))))
 
+(defn prepare-to-clean [text-path [start toss-start?] [end toss-end?]]
+  "Cuts the text to begin at a certain point and end at another."
+  (cut-consecutive-blanks 
+   (trim-back 
+    (trim-front text-path start toss-start?) 
+    end toss-end?)))
 
 
 ;sometimes consecutive lines mean something, so in that situation I should go through and delete them, but place
@@ -124,6 +131,7 @@
           :else (recur (rest seq) (conj new-seq (first seq))))))
 
 ;it'd be useful if this could either place a blank line where the chunk was, or remove it entirely. 
+;;; I could change it to be replace-chunk
 (defn cut-chunk [text-seq start until]
   "cuts a point at the first match, and extending a certain number of lines, or until a matching regex pattern is found. "
   (if start
@@ -178,6 +186,7 @@
 ;there seems to be a problem with it deleting things, and it also grabs too much in the quran, whether or not I smush-through. 
 ;allow patterns to be functions instead of just regex? 
 ;still needs some touching up I think, but the main error is fixed.
+;;; It's not smushing properly with Quran I think
 (defn smush-chunk [text-seq patterns starts-reset? through-end?]
   "Takes a map of starts and ends, and concatenates everything between them, stopping at, or going through the end based on the boolean supplied. Adjacent starts can either reset the chunk, or get smushed in until the end correpsonding the first start is found."
   (if (nil? patterns)
@@ -193,6 +202,7 @@
             (reverse new)
             (reverse (conj new (string/join " " (remove empty? chunk))))) 
           (let [line (first seq)]
+            (if  (re-matches-some starts line) (println line)) ;why isnt quran working? 
             (cond (and (re-matches-some starts line)  (empty? chunk))
                   (let [match-pos (position starts (re-matches-some starts line))
                         match-val (get ends match-pos)]
@@ -291,7 +301,7 @@
     text-seq))
 
 ;made for Shakespeare where comedy of errors is left justified. Might still have problems with stage direction though, and it'll push over act and scene markers. Maybe add an optional exceptions list. 
-;modif this so it takes a map of starts and stops so it can perform multiple pushes in a single pass. 
+;modify this so it takes a map of starts and stops so it can perform multiple pushes in a single pass!
 (defn push-lines
   "Adds n number of spaces to all lines in a seq inbetween start and stop."
   [text-seq start stop n]
@@ -311,6 +321,15 @@
                   (and begun? (not (empty? line))) ;dont add spaces if its an empty
                   (recur (rest seq) (conj new (string/join "" [space-chunk line])) true)
                   :else (recur (rest seq) (conj new line) begun?))))))))
+
+;;; TODO 9-17 WRITE THESE TWO FUNCTIONS AND FIND A SOLUTION TO THE NUMBER OF ARGS IN CLEAR-TEXT,
+;;; it shouldn't perform a function if it gets a nil argmument, tho that doesnt really matter. 
+;;; What I need is a way to decide which functions to compose given the arguments. Or just make
+;;; them all optional, tho that'd occur once in clear-text and then in map-text, but oh well. 
+;;; After that I need to modify the functions I have to work with a map of patterns. 
+;;; See if there's a macro that'll do these conditionals for me. I give it a map of patterns,
+;;; and an action I want performed on everything that matches and one perofromed on everything
+;;; that doesnt. It then generates a function that checks each of those patterns and modifies text. 
 
 ;;; this needs to take a map of starts and stops, use on antony and cleopatra on acts that are too far indented, which causes problems with the mapping I've set up using notched? 
 ;;; right now I need this to pull a specific pattern of line, not a chunk, so it should pull up to the stop, not through in. 
@@ -388,7 +407,7 @@
      (cleave-lines
       (lop-lines 
        (remove-lines
-        (cut-consecutive-lines 
+        (cut-consecutive-blanks 
          (cut-chunk 
           (trim-back (trim-front text-path start toss?) end toss?) ;trim front is the root, converting path to seq
           cut-start cut-until))
@@ -399,6 +418,27 @@
     duplicate-pats)
    push-start push-stop push-n))
 
+
+;;; A second version incorporating prepare-to-clean, but cutting chunks usually comes before cutting consecutive
+;;; blanks so I should keep an eye on this. 
+(defn clear-text2 [text-path start end cut-start cut-until remove-pats cleave-this cleave-at lop-gen lop-spec
+                  lop-split  smush-start starts-reset? smush-through? duplicate-pats push-start
+                  push-stop push-n]  
+  (push-lines 
+   (remove-duplicates 
+    (smush-chunk 
+     (cleave-lines
+      (lop-lines 
+       (remove-lines
+        (cut-chunk 
+         (prepare-to-clean text-path start end)
+         cut-start cut-until)
+        remove-pats)
+       lop-gen lop-spec lop-split) 
+      cleave-this cleave-at)
+     smush-start starts-reset? smush-through?)
+    duplicate-pats)
+   push-start push-stop push-n))
 
 ;create new file out of a segment of a file. give a start and a stop, either as words, lines
 ;this is the next thing to do so I can trust the maps I have.
@@ -473,9 +513,13 @@ the str matches the pattern, or it returns function applied to str."
            push-stop nil
            push-n 0}}] ;this isn't matching all
   "returns a map of the text with keywords representing part, section, and segment.s"
-  (loop [seq (clear-text text-path start end toss? cut-start cut-until remove-pats split-this split-at lop-gen
-                         lop-spec lop-split  smush-start starts-reset? smush-through? fold-pred
-                         duplicate-pats push-start push-stop push-n) 
+  (loop [
+         ;; seq (clear-text text-path start end toss? cut-start cut-until remove-pats split-this split-at lop-gen
+         ;;                 lop-spec lop-split  smush-start starts-reset? smush-through?
+         ;;                 duplicate-pats push-start push-stop push-n) 
+         seq (clear-text2 text-path [start toss?] [end toss?] cut-start cut-until remove-pats split-this split-at
+                         lop-gen lop-spec lop-split smush-start starts-reset? smush-through? duplicate-pats 
+                         push-start push-stop push-n)
          map {}
          volume 0
          book 0
@@ -486,7 +530,7 @@ the str matches the pattern, or it returns function applied to str."
     (let [line (first seq)]
       (cond (or (nil? line) (file-end? line)) 
             (into (sorted-map-by compare-index) map) 
-            ;not 0 based, causing moby to map weird!
+                                        ;not 0 based, causing moby to map weird!
             (marker? line volume?)
             (recur (rest seq)
                    (conj map [[(inc volume) 0 0 0 0] line])
@@ -506,7 +550,7 @@ the str matches the pattern, or it returns function applied to str."
             (marker? line section?) ;section not to be mapped.
             (recur (rest seq)
                    map ;don't do anything to the map, section increases, but next line will be at 0.
-;(conj map [[volume book part (inc section) 0] ""]) ;easier to deal with than two cases for nil
+                                        ;(conj map [[volume book part (inc section) 0] ""]) ;easier to deal with than two cases for nil
                    volume book part (inc section) 0)
             (marker? line segment?) ;COND3
             (recur (rest seq)
@@ -871,12 +915,16 @@ the str matches the pattern, or it returns function applied to str."
             "Quran" {"Yusuf Ali" '(map-text "text-files/quran.txt" nil nil nil #" Chapter .*"
                                             not-empty true
                                             :start #"----.*"
-                                            ;:push-start #"Y:.*" :push-end #"" :push-n 2 ;why wont this work, even though I don't need it to, I'd like to know. 
                                             :remove-pats [#"----.*" #"[0-9]{3}\.[0-9]{3}" #" Total Verses.*" ]
                                             :cut-start #"P:.*|S:.*" :cut-until #"";why does this slow it down?
-                                            :smush-start {#" Chapter .*|\s{4,}In the name of Allah,.*" #"\ {4,}[A-Z(),\ -]+"
+                                            :smush-start {#" Chapter .*|\s{4,}In the name of Allah,.*" 
+                                                          #"\ {4,}[A-Z(),\ -]+" 
                                                           #"Y:.*"  #""} 
                                             :smush-through? true
+                                            :starts-reset? false  ;this smushes way too much, why?!?!?
+                                            ;; it seems that prepare->cut-chunk->remove-lines->smush-chunk works, 
+                                            ;; so why does clear-text not!? I can only figure it's getting rid of
+                                            ;; blanks betweens Ys, but that doesnt seem to be the case...
                                             )}
             "Webster's Dictionary" '(map-dictionary)
             "Homer" {"The Illiad" '(map-text "text-files/POETRY/illiad-pope.txt"
@@ -949,7 +997,7 @@ the str matches the pattern, or it returns function applied to str."
             "John Milton" ;map his complete works, or split this up, which makes more sense: easier to access PL than volume 4 or something. DUH! map multiple texts by just setting a start and end point! do for shakespeare!
             {"Paradise-Lost" '(map-text "text-files/POETRY/paradise-lost.txt" nil nil #"  BOOK.*" 
                                        indented? (fn [line] (and (not-empty line) 
-                                                                 (not (uppercase? line)))) false)
+                                                                 (not (uppercase? line)))) false)  ;NIL!?!?!
              
              "Paradise Regained" '(map-text "text-files/POETRY/paradise-regained.txt" 
                                            nil nil #"  THE.* BOOK" indented? not-empty true
@@ -966,9 +1014,7 @@ the str matches the pattern, or it returns function applied to str."
                                      ;this smushing fucks up eidolons by taking away empties... also absorbs titles it seems. 
                                      :smush-start {#"\S.*|\ {2}\S.*|\ {5}\S.*|\ {7}\S.*" ;this is a problem because you shouldnt have to think about left-justified lines as starts, but the way I have smush-chunk you have to. 
                                                    #"|\S.*|\ {2}\S.*|\ {5}\S.*|\ {7}\S.*"}
-                                     :smush-through? false
-                                     ;:collapse-pat #"\ {4,6}[0-9a-zA-Z].*"
-                                     );if the line is indented > 6, dont collapse. this can be replaced with fold-lines checking justified or something. 
+                                     :smush-through? false)
             
             ;; "James Joyce" {"Portrait of the Artist" "map here" "Ulysses" "Finnegans Wake"}
 })

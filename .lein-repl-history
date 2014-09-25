@@ -1,99 +1,3 @@
-    [([1 & r] :seq)] [:a1 r]
-    :else nil))
-(let [x '(1 2)]
-  (match [x]
-    [([1] :seq)] :a0
-    [([1 & r] :seq)] [:a1 r]
-    :else nil))
-(tokenize "    hi")
-(char-array "hi")
-(seq (char-array "hi"))
-(seq (char-array "   hi"))
-(seq (char-array "me time with a lance; but the furious monster at length"))
-rushed on the boat; himself and comrades only being preserved by leaping
-into the water when they saw the onset was inevitable." --MISSIONARY
-JOURNAL OF TYERMAN AND BENNETT.
-"Nantucket itself," said Mr. Webster, "is a very striking and peculiar
-portion of the National interest. There is a population of eight or nine
-thousand persons living here in the sea, adding largely every year
-to the National wealth by the boldest and most persevering industry."
---REPORT OF DANIEL WEBSTER'S SPEECH IN THE U. S. SENATE, ON THE
-APPLICATION FOR THE ERECTION OF A BREAKWATER AT NANTUCKET. 1828.
-"The whale fell directly over him, and probably killed him in a moment."
---"THE WHALE AND HIS CAPTORS, OR THE WHALEMAN'S ADVENTURES AND THE
-WHALE'S BIOGRAPHY, GATHERED ON THE HOMEWARD CRUISE OF THE COMMODORE
-PREBLE." BY REV. HENRY T. CHEEVER.
-"If you make the least damn bit of noise," replied Samuel, "I will send
-you to hell." --LIFE OF SAMUEL COMSTOCK (THE MUTINEER), BY HIS BROTHER,
-WILLIAM COMSTOCK. ANOTHER VERSION OF THE WHALE-SHIP GLOBE NARRATIVE.
-"The voyages of the Dutch and English to the Northern Ocean, in order,
-if possible, to discover a passage through it to India, though they
-failed of their main object, laid-open thaunts of the whale."
---MCCULLOCH'S COMMERCIAL DICTIONARY.
-1
-)))
-)
-(tokenize "")
-(seq "hi")
-(vector "hi")
-(into [] (seq "HI"))
-["THE" _ "BOOK"]
-(map seq ["THE" _ "BOOK"])
-(map seq ["THE" '_ "BOOK"])
-(map seq ["THE" "_" "BOOK"])
-(def a ["THE" _ "BOOK"])
-(match
-)
-(match ["THE" "FIRST" "BOOK"] ["THE" _ "BOOK"])
-(match ["THE" "FIRST" "BOOK"] ["THE" _ "BOOK"] true)
-(match ["THE" "FIRST" "BOOK"] (map seq ["THE" _ "BOOK"]) true :else false)
-(match ["THE" "FIRST" "BOOK"] [(map seq ["THE" _ "BOOK"])] true :else false)
-(match [(map seq ["THE" "FIRST" "BOOK"])] [(map seq ["THE" _ "BOOK"])] true :else false)
-(defn a [x] (if x (apply x [1 2 3])))
-a
-(a +)
-(subvec '(1 2 3) 0 1)
-(subvec [1 2 3] 0 1)
-(subvec [1 2 3 4 5] 0 4)
-(defn indented? [str]
-  (= (subvec (into [] (seq str)) 0 4) 
-     (int [] (seq "    "))))
-(seg "    ")
-(seq "    ")
-(into [
-]3
-4
-)
-(into [] (seq "Hi"))
-(defn indented? [str]
-  (if (> (count str) 4)
-    (= (subvec (into [] (seq str)) 0 4) 
-       (into [] (seq "    ")))
-    false))
-(indented? "    ")
-(indented? "     ")
-(indented? "    a")
-(indented? "    ")
-(defn marker? [str & [pattern feature]]
-  "accepts a string and pattern, returning true if the str matches the pattern.
-Multiple patterns can be given, and can be as complex as needed: might require or patterns,
-or guarded ones. " 
-  (if pattern
-    (match/match (tokenize str) pattern true
-                 :else false)
-    (if feature
-      (feature str))))
-(defn marker? [str & [pattern feature]]
-  "accepts a string and pattern, returning true if the str matches the pattern.
-Multiple patterns can be given, and can be as complex as needed: might require or patterns,
-or guarded ones. " 
-  (if pattern
-    (match (tokenize str) pattern true
-                 :else false)
-    (if feature
-      (feature str))))
-(marker? "THE BOOK" ["THE" _])
-(marker? "THE BOOK" ["THE" '_])
 (marker? "THE BOOK" ["THE" "BOOK"])
 (marker? "    THE BOOK" indented?)
 (marker? "     THE BOOK" indented?)
@@ -498,3 +402,99 @@ quit
 (dict "in")
 (dict "nos")
 (dict "doceo")
+(refresh)
+(load-text "Quran" "Yusuf Ali")
+(def q ((texts "Quran") "Yusuf Ali"))
+(fetch q {3 99})
+(fetch q {3 1})
+(fetch q {3 2})
+(first (fetch q {3 2}))
+(second (fetch q {3 2}))
+(refresh)
+(load-text "Quran" "Yusuf Ali")
+(def q ((texts "Quran") "Yusuf Ali"))
+q
+(refresh)
+(load-text "Quran" "Yusuf Ali")
+(def q ((texts "Quran") "Yusuf Ali"))
+(fetch q {3 2})
+(fetch q {3 1})
+(refresh)
+(load-text "Quran" "Yusuf Ali")
+(def q ((texts "Quran") "Yusuf Ali"))
+(fetch q {3 1})
+(refresh)
+(load-text "Quran" "Yusuf Ali")
+(def q ((texts "Quran") "Yusuf Ali"))
+(sublist q 0 10
+)
+q
+(first q)
+(second q)
+(sublist q 0 3)
+(sublist q 0 4)
+quit
+(prepare-to-clean "text-files/quran.txt" nil nil)
+(prepare-to-clean "text-files/quran.txt" [] [])
+(prepare-to-clean "text-files/quran.txt" [])
+(prepare-to-clean "text-files/quran.txt" [#"----.*" true] [#".*(?i)End of\s?(the)? Project Gutenberg.*" true])
+(def q (prepare-to-clean "text-files/quran.txt" [#"----.*" true] [#".*(?i)End of\s?(the)? Project Gutenberg.*" true]))
+(cut-chunk q #"P:.*|S:.*" #"")
+(def qq (cut-chunk q #"P:.*|S:.*" #""))
+(smush-chunk qq :smush-start {#" Chapter .*|\s{4,}In the name of Allah,.*" #"\ {4,}[A-Z(),\ -]+"
+))))
+(smush-chunk qq :smush-start {#" Chapter .*|\s{4,}In the name of Allah,.*" #"\ {4,}[A-Z(),\ -]+"
+)                                                          #"Y:.*"  #""}
+(smush-chunk qq {#" Chapter .*|\s{4,}In the name of Allah,.*" #"\ {4,}[A-Z(),\ -]+" #"Y:.*"  #""} true false)
+(def qqq (smush-chunk qq {#" Chapter .*|\s{4,}In the name of Allah,.*" #"\ {4,}[A-Z(),\ -]+" #"Y:.*"  #""} true false))
+(first qqq)
+(sublist qqq 0 10)
+(sublist qqq 0 11)
+(count qqq)
+(sublist qqq 19600)
+(def qqqq (remove-lines qqq [#"----.*" #"[0-9]{3}\.[0-9]{3}" #" Total Verses.*" ]))
+(sublist qqqq 19600)
+(count qqqq)
+(sublist qqqq 13160)
+(def qqqq (remove-lines qq [#"----.*" #"[0-9]{3}\.[0-9]{3}" #" Total Verses.*" ]))
+(count qqqq)
+(count qq)
+(sublist qqqq 23060)
+(smush-chunk qqqq :smush-start {#" Chapter .*|\s{4,}In the name of Allah,.*" #"\ {4,}[A-Z(),\ -]+"
+(def qqq (smush-chunk qqqq {#" Chapter .*|\s{4,}In the name of Allah,.*" #"\ {4,}[A-Z(),\ -]+" #"Y:.*"  #""} true false))
+(count qqq)
+(sublist qqq 13160)
+(map-text "Quran" "Yusuf Ali")
+(load-text "Quran" "Yusuf Ali")
+(def q ((texts "Quran) "Yusuf Ali"))
+)0"
+)))
+(def q ((texts "Quran") "Yusuf Ali"))
+(count q)
+(last q)
+(refresh)
+(load-text "Walt Whitman")
+(def w (texts "Walt Whitman"))
+(count w)
+(fetch w {0 1 1 1})
+(load-text "Milton" "Paradise Lost")
+(load-text "John Milton" "Paradise Lost")
+(def pl ((texts "John Milton") "Paradise Lost"))
+(last pl)
+(first pl)
+pl
+(refresh)
+(load-text "John Milton" "Paradise Lost")
+(def pl ((texts "John Milton") "Paradise Lost"))
+pl
+(defn y [x z [a b]] (println x z [a b]))
+(y 1 2 [3 4])
+w
+(load-text "Walt Whitman")
+(def w (texts "Walt Whitman"))
+(fetch w {0 1 1 7})
+y
+(defn y [[a b c d e f g h i j k l m n o p q r s t u v w x y z] (println [a x]))
+(defn y [[a b c d e f g h i j k l m n o p q r s t u v w x y z]] (println [a x]))
+(defn z [a b c d e f g h i j k l m n o p q r s t u v w x y z] (println 1))
+quit
