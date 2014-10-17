@@ -84,7 +84,7 @@
 ;it'd be useful if this could either place a blank line where the chunk was, or remove it entirely. 
 ;;; I could change it to be replace-chunk
 (defn cut-chunk [text-seq start until]
-  "cuts a point at the first match, and extending a certain number of lines, or until a matching regex pattern is found. "
+  "Cuts a point at the first match, and extending a certain number of lines, or until a matching regex pattern is found. "
   (if start
     (loop [seq text-seq
            new-seq ()]
@@ -101,6 +101,26 @@
                    new-seq)) ;recur on a loop, but maybe there's a cleaner way. 
           (recur (rest seq) (conj new-seq (first seq))))))
     text-seq))
+
+
+;;; the end in map can be a number or a pattern
+(defn cut-chunk [text-seq start-end-map] 
+  (let [starts (keys start-end-map)
+        ends (vals start-end-map)] 
+    (loop [seq text-seq
+           in-chunk? nil
+           new-seq ()]
+      (if (empty? seq) (reverse new-seq) 
+          (let [line (first seq)] 
+            (cond (and (util/re-matches-some starts line) (not in-chunk?))  ;start throwing em away
+                  (recur (rest seq) true new-seq)
+                  ;; if it matches start and you're in a chunk continue tossing
+                  ;; branch here with an if on whether end 's a number or pattern
+                  ;; if it matches end and you're in a chunk toss it and begin anew
+                  ;; if it's an end and you're not in a chunk keep it
+                  :else (recur (rest seq) in-chunk? (conj new-seq line))
+                  )))))
+  )
 
 (defn lonely-lines [text-seq]
   "This removes all isolated empty-lines, useful in texts with double-spacing."
@@ -136,7 +156,6 @@
 ;this is working sometimes it seems, but not on my toytests which get me an empty list too often. 
 ;there seems to be a problem with it deleting things, and it also grabs too much in the quran, whether or not I smush-through. 
 ;allow patterns to be functions instead of just regex? 
-;still needs some touching up I think, but the main error is fixed.
 ;;; It's not smushing properly with Quran I think
 (defn smush-chunk [text-seq patterns starts-reset? through-end?]
   "Takes a map of starts and ends, and concatenates everything between them, stopping at, or going through the end based on the boolean supplied. Adjacent starts can either reset the chunk, or get smushed in until the end correpsonding the first start is found."
@@ -154,31 +173,26 @@
             (reverse (conj new (string/join " " (remove empty? chunk))))) 
           (let [line (first seq)]
             (let [start-match-pos (util/position starts (util/re-matches-some starts line))  ;improve naming
-                  end-match-val (get ends start-match-pos)])
-            (cond (and (util/re-matches-some starts line)  (empty? chunk))
-                  (let [match-pos (position starts (util/re-matches-some starts line)) ;move this to top and use in the conditionals, less repetition.
-                        match-val (get ends match-pos)]
-                    (recur (rest seq) new (conj chunk line) match-val))
+                  matching-end (get ends start-match-pos)] 
+              (cond (and start-match-pos  (empty? chunk))
+                    (recur (rest seq) new (conj chunk line) matching-end)
                                         ;if it meets another start in the chunk, it begins again. 
-                  (and  (util/re-matches-some starts line) (not (empty? chunk)) starts-reset?)
-                  (let [match-pos (position starts (util/re-matches-some starts line))
-                        match-val (get ends match-pos)]
-                    (recur (rest seq) (conj new (string/join " " (remove empty? chunk))) (conj [] line) match-val))
-                  ;; if start-reset is false then it'll smush the new mathching start into the chunk, preserving the first matching end
-                  (and (util/re-matches-some starts line) (not (empty? chunk)))
-                  (let [match-pos (position starts (util/re-matches-some starts line))
-                        match-val (get ends match-pos)]
-                    (recur (rest  seq) new (conj chunk line) end))
+                    (and  start-match-pos (not (empty? chunk)) starts-reset?)
+                    (recur (rest seq) (conj new (string/join " " (remove empty? chunk))) 
+                           (conj [] line) matching-end)
+                    ;; if start-reset is false then it'll smush the new mathching start into the chunk, preserving the first matching end
+                    (and start-match-pos (not (empty? chunk)))
+                    (recur (rest  seq) new (conj chunk line) end) 
                                         ;if its an end going through, also make sure chunk isnt empty, because of it is and an end is met then its just conjed onto new and chunk stays empty. 
-                  (and end through-end? (re-matches end line) (not (empty? chunk)) )
-                  (recur (rest seq) (conj new (string/join " "(remove empty? (conj chunk line)))) [] nil)
+                    (and end through-end? (re-matches end line) (not (empty? chunk)) )
+                    (recur (rest seq) (conj new (string/join " "(remove empty? (conj chunk line)))) [] nil)
                                         ; if it isnt going through the end.
-                  (and end (re-matches end line) (not (empty? chunk)))
-                  (recur (rest seq) (conj (conj new (string/join " " (remove empty? chunk))) line) [] nil)
+                    (and end (re-matches end line) (not (empty? chunk)))
+                    (recur (rest seq) (conj (conj new (string/join " " (remove empty? chunk))) line) [] nil)
                                         ;if it is neither a start or an end, but you've begun, then it adds it to chunk.
-                  (not (empty? chunk))
-                  (recur (rest seq) new (conj chunk line) end)
-                  :else (recur (rest seq) (conj new line) [] nil))))))))
+                    (not (empty? chunk))
+                    (recur (rest seq) new (conj chunk line) end)
+                    :else (recur (rest seq) (conj new line) [] nil)))))))))
 
 ;;; use in shakespeare where stage-directions should be one line. give several predicates like justified and left-justified so it handles both instances without incrementing the section marker. 
 ;this can just be combined with collapse-lines, it's stupid to have two. 
@@ -193,7 +207,7 @@
         (cond (empty? seq)
               (reverse new)
               (and (predicate line) (or (empty? (second seq)) (not (predicate (second seq))))) ;if its a newline, of doesnt satisfy the predicate, then fold the lines and put in new.
-              (recur (rest seq) (conj new (kill-gaps (string/join " " (conj fold line)))) []) 
+              (recur (rest seq) (conj new (util/kill-gaps (string/join " " (conj fold line)))) []) 
               (predicate line)
               (recur (rest seq) new (conj fold line)) ;messes with formatting
               :else (recur (rest seq) (conj new line) []))))))
@@ -245,10 +259,10 @@
       (if (empty? seq)
         (reverse new)
         (let [line (first seq)] 
-          (cond (and (re-matches-some pats line) (zero? (counts (which-matches? pats line)))) ;preserve the first ocuurence
-                (recur (rest seq) (conj new line) (update-in counts [(which-matches? pats line)] inc))
-                (and (re-matches-some pats line) (> (counts (which-matches? pats line)) 0))
-                (recur (rest seq) new (update-in counts [(which-matches? pats line)] inc))
+          (cond (and (util/re-matches-some pats line) (zero? (counts (util/which-matches? pats line)))) ;preserve the first ocuurence
+                (recur (rest seq) (conj new line) (update-in counts [(util/which-matches? pats line)] inc))
+                (and (util/re-matches-some pats line) (> (counts (util/which-matches? pats line)) 0))
+                (recur (rest seq) new (update-in counts [(util/which-matches? pats line)] inc))
                 :else (recur (rest seq) (conj new line) counts)))))
     text-seq))
 
@@ -298,7 +312,7 @@
   "Removes all occurences of any element matching something in patterns."
   (if (empty? patterns)
     text-seq
-    (remove (fn [ln] (re-matches-some patterns ln)) text-seq)))
+    (remove (fn [ln] (util/re-matches-some patterns ln)) text-seq)))
 
 ;use on latin dict to separate entries which are each two lines. 
 (defn insert-every-nth-line [text-seq addition n]
@@ -345,6 +359,9 @@
                 (not started?)
                 (recur (rest seq) (conj new line) started?)
                 :else (recur (rest seq) new started?)))))))
+
+;;; shit placeholder
+(defn prepare-to-clean [])
 
 ;;; A second version incorporating prepare-to-clean, but cutting chunks usually comes before cutting consecutive
 ;;; blanks so I should keep an eye on this. 
@@ -403,12 +420,13 @@
   "accepts a string and marker, either a function or regex, returning true if 
 the str matches the pattern, or it returns function applied to str." 
   (if-not (nil? marker)
-    (if (pattern? marker)
+    (if (util/pattern? marker)
       (re-matches marker str)
       (marker str))
     nil))
 
 ;;; puth volume, book, etcetera in the keymap, defaulting to nil so it puts every line as segment. 
+;;; Make segments vectors of words so that the atomic unit is the word; or should it be the character?
 (defn map-text 
   [text-path volume? book? part? section? segment? map-section-marker? ;either t or f. use 1 or 0 instd
    & {:keys [start end toss? cut-start cut-until remove-pats split-this split-at lop-gen lop-spec lop-split
@@ -482,7 +500,7 @@ the str matches the pattern, or it returns function applied to str."
 ;this needs to handle parentheticals, as well as lines ending in a -; the words need to be combined. 
 ;separate "a - b" into separate sentences? if so, where does the - go? get-sentences is getting in my way. just use
 ;.split
-;TOSS THIS in favor of clearing the text in a specicfic way for prose, then just mapping normally. It'd be clearer than mapping once, and then remapping. 
+;TOSS THIS in favor of clearing the text in a specicfic way for prose, then just mapping normally. It'd be clearer than mapping once, and then remapping. This could be done by formatting prose like poetry, so separate sentences as lines. There should be a default way to do this without worrying about specific regexes. 
 ;;; I have no idea if this still works or not. 9-25-14
 (defn map-sentences [map] 
   (loop [seq (seq map) ;cdr this down
@@ -514,9 +532,9 @@ the str matches the pattern, or it returns function applied to str."
 
             (not (= section (get (first (first seq)) 3))) 
             (if (not (= (count paragraph) 
-                        (count (remove (fn [x] (not (indented? x))) paragraph))))
+                        (count (remove (fn [x] (not (util/indented? x))) paragraph))))
               ;;if the whole paragraph isnt lyrical, else map it by line
-              (let [sentences (get-sentences (string/join " " paragraph))]
+              (let [sentences (nlp/get-sentences (string/join " " paragraph))]
                 (recur (rest seq)
                        (conj map (zipmap ;what if this is nil...
                                   (into [] (for [i (into []  (range (count sentences)))]
@@ -528,7 +546,7 @@ the str matches the pattern, or it returns function applied to str."
               (recur (rest seq)
                      (conj map (zipmap (into [] (for [i (into [] (range (count paragraph)))]
                                                   [volume book part section i]))
-                                       (map cleanup-string  paragraph)));why no work?
+                                       (map util/cleanup-string  paragraph)));why no work?
                      volume book part (inc section)
                      [(second (first seq))]))
             ;if its justified, dont add to paragraph, just put in map
@@ -571,7 +589,7 @@ the str matches the pattern, or it returns function applied to str."
 ;this searches for indivudal words and not phrases like "SONG OF SOLOMON." 
 (defn bible-book? [str]
   (if (not (empty? (filter string? 
-                          (for [word (tokenize str)]
+                          (for [word (nlp/tokenize str)]
                             (some #{word} bible-books)))))
     true
     false))
@@ -583,68 +601,10 @@ the str matches the pattern, or it returns function applied to str."
             nil
             #"THE NEW TESTAMENT OF OUR LORD AND SAVIOUR JESUS CHRIST"
             (fn [line] ;if it isn't allcaps then it isn't a book title. 
-              (if (uppercase? line) (bible-book? line) false)) 
+              (if (util/uppercase? line) (bible-book? line) false)) 
             #"[CHAPTER PSALM].*"
-            (fn [line] (and (not (empty? line)) (not (newline? line))))
+            (fn [line] (and (not (empty? line)) (not (util/newline? line))))
             true :start nil :end nil))
-
-;========================================================================================
-;========================================================================================
-;MAP RETRIEVAL AND ACCESS
-;========================================================================================
-;========================================================================================
-
-;(write-map "text-maps/texts-maps.clj" texts)
-
-;these all rely on text being mapped properly. it'll fail if some indexes are not mapped, such as
-;if it fails to map a first segment, but maps the rest, it'll fail to retrieve it even though
-;part of it is there. should count be incremented? the problem is sometimes it should start at
-;1 if the marker is an empty line, but at 0 or there's something there. changing the sec and prt to 0 screwed some stuff up, I think 'cause of checks on empty? changed it back so lets find problem. I want markers when I print, indexes also, but maybe just for random. for everything else
-;it would be appropiate to only show the units that changed. 
-
-;have it also return index? or maybe just segment number, and for the others return appropiate value. 
-
-(defn key-match [index1 index2]
-  )
-
-;let this be arbitrary so you can say something like give me the first sentence of every second paragraph from
-;every volume in the first part.
-;doesnt work with '_ in the vector. 
-
-;thanks to Andrew Marshall
-(defn fetch
-  "Takes a map `m` keyed by vectors and a map `coords`
-  keyed by indices into those vectors.
-
-  Returns a submap of `m` that includes all on only the keys
-  which agree with `coords` on the indices mentioned in `coords`."
-  [m coords]
-  (into (sorted-map-by compare-index)
-    (for [[k :as e] m
-          :when (every? #(= (nth k %) (get coords %))
-                  (keys coords))]
-      e)))
-
-
-(defn dict-key-search [dict pat]
-  (select-keys dict (into [] (for [[k v] dict
-                                   :when (re-matches pat k)]
-                               k))))
-
-;;; currently broken! 7-23
-(defn dict-pronunciation-search [dict pat]
-  (select-keys dict (into [] (for [[k v] dict
-                                   :when 
-                                   (if (map? v) ;if its a map then just get the pron, if it isnt then its a vector of maps, so go thru each. 
-                                     (re-matches pat (v :pronunciation)) ;why null pointer here? v should always have pron if its a map. 
-                                     ;(re-matches pat ((get v 0) :pronunciation))
-                                     )] ;what if there's multiple entires in v, 
-                               k))))
-
-(defn dict-entry-search [dict pat]
-  (select-keys dict (into [] (for [[k v] dict
-                                     :when (re-matches pat v)]
-                               k))))
 
 ;========================================================================================
 ;========================================================================================
@@ -655,6 +615,7 @@ the str matches the pattern, or it returns function applied to str."
 ;take notes, highlight, link one text to another. 
 
 ;way too slow to do all of these, just write it somewhere. this should really be a function map-all-texts
+;;; change this so it's always mapped by title, but each text has meta-data.
 (def texts {"Bible" '(map-bible)
            
             "Quran" {"Yusuf Ali" '(map-text "text-files/quran.txt" nil nil nil #" Chapter .*"
@@ -663,7 +624,7 @@ the str matches the pattern, or it returns function applied to str."
                                             :remove-pats [#"----.*" #"[0-9]{3}\.[0-9]{3}" #" Total Verses.*" ]
                                             :cut-start #"P:.*|S:.*" :cut-until #"";why does this slow it down?
                                             :smush-start {#" Chapter .*|\s{4,}In the name of Allah,.*" 
-                                                          #"\ {4,}[A-Z(),\ -]+" 
+                                                          #"\ {4,}[A-Z(),\ -]+"
                                                           #"Y:.*"  #""} 
                                             :smush-through? true
                                             :starts-reset? false  ;this smushes way too much, why?!?!?
@@ -703,7 +664,7 @@ the str matches the pattern, or it returns function applied to str."
                                              #"\ ?Scene .*|.*SCENE .*|.*PROLOGUE.*|.*EPILOGUE.*|.*INDUCTION.*" 
                                              
                                              (fn [line]
-                                               (or (and  (not (indented? line)) (notched? line))
+                                               (or (and  (not (util/indented? line)) (notched? line))
                                                    (or  (justified? line) (left-justified? line))))
                                              not-empty
                                         ;notched? ;used to be indented?... 

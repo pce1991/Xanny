@@ -31,8 +31,7 @@
 ;STRING TRIMMING
 ;=============================================
 
-(defn get-words [string] 
-  (string/split string #"\ "))
+
 
 ;doesnt work for non-english chars
 (defn letter? [char]
@@ -49,6 +48,15 @@
   (if (some #{ch} '(\ \.\,\'\\\;\:\!\?\/\+\=\-\{\}\[\]\(\)))
     true
     false))
+
+(defn remove-punctuation [string] 
+  (loop [s (reverse (seq string))]
+    (if (punctuation? (first s))
+      (recur (rest s))
+      (apply str (reverse s)))))
+
+(defn get-words [string] 
+  (map remove-punctuation  (string/split string #"\ ")))
 
 (defn pattern? [pat]
   "checks to see if an element is a regex pattern." 
@@ -213,6 +221,10 @@
       (if (re-matches (first pats) str)
         (first pats)
         (recur (rest pats))))))
+
+(defn re-get [coll pat]
+  (let [gettables (map str (keys coll))] 
+    (get (zipmap gettables (vals coll)) (str pat))))
 
 ;split can bu used to get the rest, but It'll fail if the pattern retains the .* stuff
 ;if the user doesnt suplly them as regex, but I do that here, then they're just strings and can be modified. 

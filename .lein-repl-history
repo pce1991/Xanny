@@ -1,32 +1,3 @@
-exit
-'("THE" _)
-(into [] '("THE" _))
-(list? 
-'())
-(into vector '(1))
-(into vec '(1))
-(defn marker? [str pattern/feature] ;give as list, put into vector
-  "accepts a string and pattern, returning true if the str matches the pattern.
-Multiple patterns can be given, and can be as complex as needed: might require or patterns,
-or guarded ones. " 
-  (if (list? pattern/feature)
-    (match (tokenize str) (into [] pattern/feature) true
-                 :else false)
-    (pattern/feature str)))
-(defn marker? [str marker] ;give as list, put into vector
-  "accepts a string and pattern, returning true if the str matches the pattern.
-Multiple patterns can be given, and can be as complex as needed: might require or patterns,
-or guarded ones. " 
-  (if (list? marker)
-    (match (tokenize str) (into [] marker) true
-                 :else false)
-    (marker str)))
-(use 'clojure.core.match)
-(defn marker? [str marker] ;give as list, put into vector
-  "accepts a string and pattern, returning true if the str matches the pattern.
-Multiple patterns can be given, and can be as complex as needed: might require or patterns,
-or guarded ones. " 
-  (if (list? marker)
     (match (tokenize str) (into [] marker) true
                  :else false)
     (marker str)))
@@ -498,3 +469,32 @@ quit
 (refresh)
 (re-matches-some [#"a" #"b"] "c")
 quit
+(def b (map-bible))
+(first b)
+(last b)
+(def a {#"a" #"b"})
+(a #"a")
+(get a #"a")
+(keys a)
+(#"a" a)
+(str #"a")
+(map str a)
+(map str (keys a))
+(defn re-get [coll pat]
+  (let [gettables (map str (keys pat))] 
+    (get (zipmap gettables (vals pat)) (str pat))))
+(re-get a #"a")
+a
+(map str (keys a))
+(zipmap (map str (keys a)) (vals a))
+(get (zipmap (map str (keys a)) (vals a)) "a")
+(re-get a #"a")
+(defn re-get [coll pat]
+  (let [gettables (map str (keys pat))] 
+    (println gettables)
+    (get (zipmap gettables (vals pat)) (str pat))))
+(re-get a #"a")
+(defn re-get [coll pat]
+  (let [gettables (map str (keys coll))] 
+    (get (zipmap gettables (vals coll)) (str pat))))
+(re-get a #"a")

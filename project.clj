@@ -6,7 +6,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [clojure-opennlp "0.3.2"]
-		 [clj-wordnet "0.1.0"]
+		 [clj-wordnet "0.1.1-SNAPSHOT"]
                  [org.clojure/core.match "0.2.1"]
 		 [org.clojure/tools.namespace "0.2.4"]
                  [incanter "1.5.4"]

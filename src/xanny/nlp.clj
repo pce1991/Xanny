@@ -31,9 +31,42 @@
 ;WORDNET
 ;========================================================================================
 ;========================================================================================
-(def wordnet (make-dictionary "NLP/WordNet-3.0"))
+(def wordnet (make-dictionary "NLP/WordNet-3.0/dict"))
 
+(defn wn 
+  "Return all entries for a word."
+  ([word] (if-not (empty?  (wordnet word))
+            (wordnet word)
+            nil))
+  ([word pos] (if-not (empty? (wordnet word pos))
+                (wordnet word pos)
+                nil)))
 
+;;; if type is map, then its a single entry, if its a seq then concat
+(defn lemmas [word & pos]
+  "Returns a sequence of lemmas paired with their pos."
+  (let [entry (if pos (wn word (first pos)) (wn word))]
+    (if (seq? entry)
+      (distinct (map (fn [ent] [(:lemma ent) (:pos ent)]) entry))
+      (:lemma entry))))
+
+;;; there's really no need to map the word onto the lemmas because all I'm looking for is similar lemmas. Might help find the position of that lemma in the sentence tho, look into that. 
+;;; TODO filter out empty lemmas
+(defn lemmatize [sentence]
+  (let [words (get-words sentence)]
+    (loop [w words
+           lemma-map {}]
+      (if (empty? w)
+        (into {} (filter (fn [e] (not (nil? (val e)))) lemma-map))
+        (recur (rest w) (conj lemma-map [(first  w) (lemmas (first  w))]))))))
+
+;;; how to get synonym for a word with multiple entries? Build a map of synomyms for each type, {:noun [] :verb []}
+(defn synonyms-all [word]
+  )
+
+(defn synonyms-sentecne [])
+
+;;; treat word-net entries like "go_after" as "go after"
 ;========================================================================================
 ;========================================================================================
 ;MARKOV GENERATION

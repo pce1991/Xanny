@@ -526,7 +526,6 @@ the str matches the pattern, or it returns function applied to str."
          part 0
          section 0
          segment 0]
-    ;(println (first seq))
     (let [line (first seq)]
       (cond (or (nil? line) (file-end? line)) 
             (into (sorted-map-by compare-index) map) 
@@ -996,8 +995,8 @@ the str matches the pattern, or it returns function applied to str."
             ;;"Spencer" {}
             "John Milton" ;map his complete works, or split this up, which makes more sense: easier to access PL than volume 4 or something. DUH! map multiple texts by just setting a start and end point! do for shakespeare!
             {"Paradise-Lost" '(map-text "text-files/POETRY/paradise-lost.txt" nil nil #"  BOOK.*" 
-                                       indented? (fn [line] (and (not-empty line) 
-                                                                 (not (uppercase? line)))) false)  ;NIL!?!?!
+                                       util/indented? (fn [line] (and (not-empty line) 
+                                                                 (not (util/uppercase? line)))) false)  ;NIL now
              
              "Paradise Regained" '(map-text "text-files/POETRY/paradise-regained.txt" 
                                            nil nil #"  THE.* BOOK" indented? not-empty true

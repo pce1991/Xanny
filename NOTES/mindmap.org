@@ -1,0 +1,26 @@
+mind map where each entry has a contents, and anything discussed in the contents points to other things, so its a graph and not a tree. I don't need it to be visual, just quickly searchable and clear in referencing. How do I make sure it doesn't rely on my fallibility? If I use a tag system, then it's on me to make the tags correct: descriptive, precise, but not too individual. I can just give it key words to look for, and when it finds them it'll make a connection, but it'll ignore everything else. This just means that I determine what's important, not how its categorized or what determines a reference. There's still the risk that I'll not include the right words to look for, but at least the fracturing isn't present. Maybe I should create synonyms to compare. Even if it has the important words, how will it know what to link? If it could tell the subject or general field then that might help. If the field is philosophy, but the subject the mind, then it relates to neuroscience. Use synonyms in conjunction with wordlist so that it'll link mind stuff to brain, thinking, ideas, imagination, etcetera. It could also link sentiments. It could link things in several ways, so you could filter by what links you'd like to consider; things in the same field, with the same word, synonyms, sentiment, etcetera. 
+
+	I could use a bigram to see how often a word is the subject based on some training data, then it'll predict what word is most likely the subject. 
+
+I'll take an org document, which may be organized by subject, and then from there just index the entries 1-n. So if one entry links to another it'd be like "Shakespeare note links to {:neuroscience [10 12 56 100] :literature [1 2 3 5 9 10 12 ...]} 
+
+;;; embedding quotes and references is one thing, but I want it to make connections for me, not just between two identical things, but two similar ones; this means it should be able to match sentences with the same number of words, phrases with a similar rhythm, similar word choice, etcetera. 
+
+;;; given basic keywords, conjugate them for all possible instances. 
+;;; This may be too rigid a way to deal with the problem, but humans impose hiearchy on what they recoginize to be uncategorical, so here's my attempt. Perhaps a better method would be to list words to be ignored, and make connection between everything else; or I could look for frequent words, but that'd require training data. 
+;;; By eliminating words I can make the most connections, but then isn't it just searching a collection for a word? Maybe, but it's useful to see every idea attached to everything that shares that idea. Even if it isn't that useful, starting broad and narrowing is the way to go. You can rank things by how many matches they have with each document, so 1 might link 5 things to 2, but 3 has 8 links with 4 and 10 with 5.
+
+;;; create stem for each word, then build a regex after it, search thru all the data and add a passage everytime the regex matches one of the words. 
+;;; find a way to scale this up, so if there are segments match, then it's one link, one concept shared. This could be done by saying: text 1 has two links to text 2, then you check the position of both, and if they are adjacent you collapse them into one link. If several links are created between a text, 
+
+;;; words should only be muted unless they appear next to a match, and are consecutive. Example: "his x" shouldn mute his unless it finds "his x" in another document; so muted words are just for initial matches, but unmuted when looking at adjacent words. 
+
+Why are dictionary entries abbreviated? We aren't restricted by size anymore. Create a tool that automatically expnads all the abbreviated characters. 
+
+Write something that'll partition chunks of text into org markers, so everythign separated by a newline gets a * above it. 
+
+When lemmatizing words, I need to pick an entry since there will be multiple ones for noun, verb, etcetera. If I parse it into a tree then I can know which word to look up. So first tokenize then pos-tog. Tokenizing might be too slow, so just ignore punctioation. 
+
+This currently ignores punctuation, which provides valuable semantic meaning and might be worth considering. 
+
+
