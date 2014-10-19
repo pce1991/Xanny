@@ -66,7 +66,7 @@
 
 (defn synonyms-sentecne [])
 
-;;; treat word-net entries like "go_after" as "go after"
+;;; treat word-net entries like "go_after" as "go afterss"
 ;========================================================================================
 ;========================================================================================
 ;MARKOV GENERATION

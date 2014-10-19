@@ -27,11 +27,29 @@
   ([x y] (into [] (concat x y)))
   ([x y & r] (into [] (concat x y r))))
 
-;=============================================
-;STRING TRIMMING
-;=============================================
+;;; contrib
+(defn indexed
+  "Returns a lazy sequence of [index, item] pairs, where items come
+  from 's' and indexes count up from zero.
+  (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
+  [s]
+  (map vector (iterate inc 0) s))
 
+;;; contrib 
+(defn position [element coll]
+  (if (all-type? coll java.util.regex.Pattern) ;it will treat a regex pattern like it isnt there, so this converts them to strings to check. 
+    (.indexOf (map str coll) (str element))
+    (.indexOf coll element)))
 
+;from contrib
+(defn positions
+  "Returns a lazy sequence containing the positions at which pred
+   is true for items in coll."
+  [pred coll]
+  (for [[idx elt] (indexed coll) :when (pred elt)] idx))
+;=============================================
+;STRINGS
+;=============================================
 
 ;doesnt work for non-english chars
 (defn letter? [char]
@@ -57,6 +75,9 @@
 
 (defn get-words [string] 
   (map remove-punctuation  (string/split string #"\ ")))
+
+(defn word-position [word string]
+  (position word (get-words string)))
 
 (defn pattern? [pat]
   "checks to see if an element is a regex pattern." 
@@ -168,26 +189,7 @@
 ;this is a prett version of normal split. It'll retain the char where the split occurs, giving it to the first segment, and will trim the spaces off of the second segment. 
 (defn string-split [str split-at])
 
-;also from contrib. 
-(defn indexed
-  "Returns a lazy sequence of [index, item] pairs, where items come
-  from 's' and indexes count up from zero.
-  (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
-  [s]
-  (map vector (iterate inc 0) s))
 
- 
-(defn position [coll element]
-  (if (all-type? coll java.util.regex.Pattern) ;it will treat a regex pattern like it isnt there, so this converts them to strings to check. 
-    (.indexOf (map str coll) (str element))
-    (.indexOf coll element)))
-
-;from contrib
-(defn positions
-  "Returns a lazy sequence containing the positions at which pred
-   is true for items in coll."
-  [pred coll]
-  (for [[idx elt] (indexed coll) :when (pred elt)] idx))
 
 
 ;doesnt retain front and end spaces right now... 
