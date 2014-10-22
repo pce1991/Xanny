@@ -1,43 +1,3 @@
-Multiple patterns can be given, and can be as complex as needed: might require or patterns,
-or guarded ones. " 
-  (if (list? marker)
-    (let [marker-vec (into [] marker)]
-      (match (tokenize str) marker-vec true
-                 :else false)
-    (marker str)))
-)
-exit
-(marker? "THE BOOK" ["THE" "BOOK"])
-(marker? "THE BOOK" ("THE" "BOOK"))
-(into [] '("THE" "BOOK"))
-(list? '("TH" "kd"))
-(marker? "    THE BOOK" indented?)
-(marker? "THE BOOK" '("THE" "BOOK"))
-(marker? "THE BOOK" '("THE" _))
-(tokenize "the book")
-(def a ["THE" _])
-(def a (into [] '("THE" _)))
-a
-(use 'clojure.
-core.match)
-(use 'clojure.core.match
-)
-a
-(match ["THE" "BOOK"] a)
-(match ["THE" "BOOK"] a true)
-(match ["THE" "BOOK"] [a] true)
-(match ["THE" "BOOK"] a true :else false)
-(match ["THE" "BOOK"] [a] true :else false)
-exit
-(def bible (map-bible "text-files/the-holy-bible/KJV-text-only.txt"))
-(def pl "text-files/POETRY/paradise-lost.txt")
-(def pl (map-text "text-files/POETRY/paradise-lost.txt"))
-(def pl (map-text "text-files/POETRY/paradise-lost.txt" (fn [line] (match (tokenize line) ["BOOK" _])) empty? (fn [line] (not (empty? line)))))
-(use 'clojure.core.match
-)
-(def pl (map-text "text-files/POETRY/paradise-lost.txt" (fn [line] (match (tokenize line) ["BOOK" _])) empty? (fn [line] (not (empty? line)))))
-(match [1 2 3 4 5] [1 2])
-(match [1 2 3 4 5] [1 2] true)
 (match [1 2 3 4 5] [1 2] true :else false)
 (match [1 2 3 4 5] [1 2 _ _ _] true :else false)
 (def pl (map-text "text-files/POETRY/paradise-lost.txt" (fn [line] (if (uppercase? line)(match (tokenize line) ["BOOK" _]))) empty? (fn [line] (not (empty? line)))))
@@ -497,4 +457,44 @@ quit
 (entwine "The quick brown fox." "The quick black dog."
 )
 (entwine [10 "The quick brown fox."] [1 "The quick black dog."])
+quit
+(weave corpus)
+(use 'clojure.pprint)
+(pprint (weave corpus))
+(refresh)
+(use 'clojure.pprint)
+(pprint (weave corpus))
+(refresh)
+(use 'clojure.pprint)
+(pprint (weave corpus))
+quit
+(lemmatize-pos "The dog ran."
+)
+(clojure.string/lower-case "The dog ran."
+)
+(tokenize (clojure.string/lower-case "The dog ran."))
+(pos-tag (tokenize (clojure.string/lower-case "The dog ran.")))
+(wn "the")
+(lemmatize-pos "The dog ran.")
+(refresh)
+(lemmatize-pos "The dog ran.")
+quit
+(lemmatize-pos "The dog ran.")
+(use 'clojure.stacktrace)
+(print-stack-trace (lemmatize-pos "The dog ran."))
+(e (lemmatize-pos "The dog ran."))
+quit
+(lemmatize-pos "The dog ran.")
+(lemmatize "The dog ran.")
+quit
+(lemmatize-pos "The dog ran.")
+2
+(re-matches-some (keys apachePOS->wordnetPOS) "NN")
+(get apachePOS->wordnetPOS (re-matches-some (keys apachePOS->wordnetPOS) "NN"))
+(refresh)
+(lemmatize-pos "The dog ran.")
+(lemmatize-pos "You can't run from your problems.")
+(lemmatize-pos "You politician lost in the running.")
+(lemmatize-pos "I was running home when...")
+(refresh)
 quit
