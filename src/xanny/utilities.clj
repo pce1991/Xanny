@@ -205,12 +205,16 @@
 (defn re-matches-all [pats str]
   (every? (fn [pat] (re-matches pat str)) pats))
 
-;returns the first match
+;returns the first matching pattern
 (defn re-matches-some [pats str]
   (some (fn [pat] (if (re-matches pat str)
                     pat
                     false)) 
         pats))
+
+;;; since a regex is an isntance of a class its impossible to get, so fetch the actual instance using re-matches-some and use that to get. 
+(defn get-regex-key [map key]
+  (get map (re-matches-some (keys map) key)))
 
 ;returs t if it only matches one of the patterns provided. 
 (defn re-matches-one [pats str])

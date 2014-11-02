@@ -47,8 +47,6 @@
                 (wordnet word pos)
                 nil)))
 
-
-
 ;;; if type is map, then its a single entry, if its a seq then concat
 (defn lemmas [word & pos]
   "Returns a sequence of lemmas paired with their POS."
@@ -64,9 +62,12 @@
     nil))
 
 ;;; might want to get POS for the words so that the lemma is precise
+;;; include words in here that have no lemmas so that the sentence is indexed at least, losing tokens. 
+;;; this is a problem because the position of the words as I'm getting them. I can just filter what appears,
+;;; I shouldnt lose any data. 
 (defn lemmatize [sentence]
   "Returns words mapped to all its possible lemmas."
-  (let [words (get-words (clojure.string/lower-case sentence))]
+  (let [words (tokenize (clojure.string/lower-case sentence))]
     (loop [w words
            lemma-map {}]
       (if (empty? w)
@@ -80,22 +81,25 @@
     (loop [w words
            lemma-map {}]
       (if (empty? w)
-        (into {} (filter (fn [e] (not (nil? (val e)))) lemma-map))
-        (recur (rest w) (conj lemma-map [(get (first w) 0) 
-                                         (if (get apachePOS->wordnetPOS 
-                                                  (re-matches-some (keys  apachePOS->wordnetPOS) 
-                                                                   (get (first w) 1)))  ;GACK
-                                           (lemma (get (first w) 0) 
-                                                  (get apachePOS->wordnetPOS 
-                                                       (re-matches-some (keys  apachePOS->wordnetPOS) 
-                                                                        (get (first w) 1)))) 
-                                           nil)]))))))
+        (into {} (filter #(not (nil? (val %))) lemma-map))
+        (recur (rest w)
+               (conj lemma-map [(get (first w) 0) 
+                                (if-let [matching (get-regex-key apachePOS->wordnetPOS (get (first w) 1))]
+                                  (lemma (get (first w) 0) matching) 
+                                  nil)]))))))
 
 ;;; how to get synonym for a word with multiple entries? Build a map of synomyms for each type, {:noun [] :verb []}
 (defn synonyms-all [word]
   )
 
 (defn synonyms-sentecne [])
+
+(defn glosses
+  ([word] (map :gloss (wn word)))
+  ([word pos] (map :gloss (wn word pos))))
+
+
+(defn synsets [])
 
 ;;; treat word-net entries like "go_after" as "go afterss"
 ;========================================================================================

@@ -1,9 +1,13 @@
 (ns xanny.intertwinularity
   (:require [xanny.nlp :refer :all]
             [xanny.utilities :as util]
-            [clojure.string :as s]))                  ;sorry Nelso, there should be no "g"
+            [clojure.string :as s]))                  ;sorry Nelso, there should be no "g," it's to get the twin. 
 
 ;;; LOOM of Nexealist 
+
+;;; RUN THIS ON THE BIBLE!q
+
+;;; use Incanter
 
 ;;; the corpus is just an indexed collection of passages. 
 ;;; How to handle the complex indices I'm using for texts, where the text has two keys to reach it, and within it
@@ -24,17 +28,6 @@
 (defn gen-corpus [text-map]
   )
 
-;;; get some dictionary stuff working so I can just have a corpus of words organized by type, and just grad articles here; use GNU CIDE
-;;; since wordnet doesn't even have entries for these it might not even be needed. 
-(def muted-words {:articles 
-                  :pronouns
-                  :prepositions
-                  :conjunctions 
-                  :determiners
-                  :particles
-                  })
-
-
 ;; {"The quick brown fox." {"quick" {"The quick black dog." 1}}
 ;;  "The quick black dog." {"quick" {"The quick brow fox." 1}}}
 ;; ;;; this might replicate data too much, I don't want a copy of the second passage, just a link to it. 
@@ -51,10 +44,11 @@
 ;;  "The quick black dog." {"quick" [{1 1} {0 1}]}}
 ;;; I don't think so. 
 
-;;; in addition to this write maps to have two types of links: the linguistic, the referential, and the personal.
+;;; in addition to this write maps to have two types of links: the linguistic, the referential, the personal
+;;; and the marginal (notes). 
 ;;; I should abstract the basic idea into a function which adds a link to two documents.
 ;;; it takes a thing to add an index to add to it, then takes the first thing and links it in the second. 
-;;; make it work for personal and linguistic notes. 
+;;; Make this work for all types of links in a general way! 
 (defn add-link [passage addition]
   "Takes a map of the passage and all its links, and adds a new link designated {type-key {index position}}")
 
@@ -76,11 +70,17 @@
         (recur (rest items))))))
 
 ;;; if the list of lemmas share a single pair then they should be merged. So for each lemma list, you loop thru it and check each item to see if its contained in the other, at the first hit combine them. 
-(defn shared-lemmas [lemmas1 lemmas2]
-  "Will work like a loose intersection where if two collections share an item they are combined."
-  
-  )
+(defn shared-lemmas [lemma lemmas]
+  "Returns the pair in lemmas that it shares with lemma."
+  (loop [find-in lemmas]  ;make into a function!
+    (if (empty? find-in)
+      nil
+      (if (share? (val lemma) (val (first find-in)))
+        (first find-in)
+        (recur (into {} (rest find-in)))))))
 
+
+;;; instead of lemmas just compare words and see how similar they are using wordnet. Write something to guess similarity by summing up the similarities of each word to every other word in a passage, then summing the results. 
 
 ;;; this doesn't entwine things adequetly enough. Example: quck and quickly should be linked, but they aren't since a lemma isnt shared. Maybe there should be criteria beyond lemmatization, like word-similarity!
 ;;; modify this to put the index in the work map? Make it add these under linguistic links, not as the only kind
@@ -99,18 +99,13 @@
         (merge p1 p2) ;use index as key instead of passage! update braid and weave then!
         (let [lemma (first to-entwine)
               pos-in-1 (util/word-position (key lemma) (s/lower-case passage1))
-              shared-lemma (loop [find-in lemmas2]  ;make into a function!
-                             (if (empty? find-in)
-                               nil
-                               (if (share? (val lemma) (val (first find-in)))
-                                 (first find-in)
-                                 (recur (into {} (rest find-in))))))
-              pos-in-2 (if-not (nil? shared-lemma) 
-                         (util/word-position (key shared-lemma) (s/lower-case passage2)) nil)]
-          (if-not (nil? shared-lemma) 
+              shared (shared-lemmas lemma lemmas2) 
+              pos-in-2 (if-not (nil? shared) 
+                         (util/word-position (key shared) (s/lower-case passage2)) nil)]
+          (if-not (nil? shared) 
             (recur (into {} (rest to-entwine))
                    (update-in p1 [passage1] conj {[(key lemma) pos-in-1] {index2 pos-in-2}})
-                   (update-in p2 [passage2] conj {[(key shared-lemma) pos-in-2] {index1 pos-in-1}}))
+                   (update-in p2 [passage2] conj {[(key shared) pos-in-2] {index1 pos-in-1}}))
             (recur (into {} (rest to-entwine)) p1 p2)))))))
 
 
@@ -138,3 +133,9 @@
 
 ;;; scale it up to concat consecutive matche lemmas.
 ;;; for lager corpi it might be best to list a minimum number of lemma matches to be considered based on the size of the passage; a smaller one might only require 3 hits to be linked to something, but a lagre one might require 10 
+;;; Part of scaling it up will be giving a substring and range a link either to a single point or a text and range
+
+;;; Bookmarks and highlighting
+;;; a bookmark marks a point of reentry. A highlight is a noteable segment with a start and end. 
+
+;;; a note is just a pointer containing an index or range (segment) keyed to value which is the note. The problem then is that notes do not exist outside of the text that points to them. Perhaps instead each user should have a collection which is notes, and each of those notes points to a text and place in it. Adding a note causes the noted text to contain a pointer to the note as well. 
