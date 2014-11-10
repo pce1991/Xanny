@@ -101,6 +101,8 @@
 
 (defn synsets [])
 
+;;; Search for all words matching the regex, or in which the regex is found. 
+
 ;;; treat word-net entries like "go_after" as "go afterss"
 ;========================================================================================
 ;========================================================================================

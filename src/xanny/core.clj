@@ -6,7 +6,8 @@
   (:use xanny.quiz)
   (:use xanny.dictionary)
   (:use clojure.tools.namespace.repl)
-  (:use xanny.intertwinularity))
+  (:use xanny.intertwinularity)
+  )
 
 ;require clojure.namespaces
 

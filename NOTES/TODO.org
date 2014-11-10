@@ -61,6 +61,8 @@
 **** should you be able to get the 10,000th word? Brad suggested it be mapped this way
 **** attach webster difintitions to wordnet, cncluding pronunciation.
      in fact, do this for many dictionaries, so its kind of a meta dictinary: one chrnicling definitions rather than use in society. Consider all of the variations between dictionaries.
+**** MACHINE LEARNING
+     Use this to find the formats of text. With enough training data it should be pretty good, even on something like Gutenberg's erraticism. Use Weka
 *** ISSUES
 **** "quotes like this" --by me are mapped as two different sentences.
      this sucks because quotes should be considered a whole unit, or at least be contextualized

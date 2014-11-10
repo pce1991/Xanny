@@ -5,7 +5,11 @@
 
 ;;; LOOM of Nexealist 
 
-;;; RUN THIS ON THE BIBLE!q
+;;; RUN THIS ON THE BIBLE!
+
+;;; Use wordnet to get hypernyms of a word then link it to everything that shares a hypernym
+;;; since depth varies organism might be depth 5 for dog, but 8 for cat so you cant look for a certain depth.
+;;; so just generate a seq of them and then see if any are shared, then record which and where when making a link
 
 ;;; use Incanter
 
