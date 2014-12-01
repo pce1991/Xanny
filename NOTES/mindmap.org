@@ -12,6 +12,7 @@ I'll take an org document, which may be organized by subject, and then from ther
 
 ;;; create stem for each word, then build a regex after it, search thru all the data and add a passage everytime the regex matches one of the words. 
 ;;; find a way to scale this up, so if there are segments match, then it's one link, one concept shared. This could be done by saying: text 1 has two links to text 2, then you check the position of both, and if they are adjacent you collapse them into one link. If several links are created between a text, 
+- what would the representation of that be? They'd be concatonated into one string-key, and instead of an single index there'd have a range pair.
 
 ;;; words should only be muted unless they appear next to a match, and are consecutive. Example: "his x" shouldn mute his unless it finds "his x" in another document; so muted words are just for initial matches, but unmuted when looking at adjacent words. 
 

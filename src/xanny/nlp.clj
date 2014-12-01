@@ -2,8 +2,7 @@
      (:use [opennlp.nlp]
            [opennlp.treebank]
            [clj-wordnet.core]
-           [xanny.utilities]
-           )
+           [xanny.utilities])
      (:require [clojure.string :as string]))
 ;========================================================================================
 ;========================================================================================
@@ -31,6 +30,12 @@
 ;WORDNET
 ;========================================================================================
 ;========================================================================================
+(def apachePOS->wordnetPOS 
+  {#"N.*" :noun
+   #"V.*" :verb
+   #"J.*" :adjective
+   #"RB.*":adverb})
+
 (def wordnet (make-dictionary "NLP/WordNet-3.0/dict"))
 
 (defn wn 
@@ -44,21 +49,44 @@
 
 ;;; if type is map, then its a single entry, if its a seq then concat
 (defn lemmas [word & pos]
-  "Returns a sequence of lemmas paired with their pos."
+  "Returns a sequence of lemmas paired with their POS."
   (let [entry (if pos (wn word (first pos)) (wn word))]
     (if (seq? entry)
       (distinct (map (fn [ent] [(:lemma ent) (:pos ent)]) entry))
       (:lemma entry))))
 
-;;; there's really no need to map the word onto the lemmas because all I'm looking for is similar lemmas. Might help find the position of that lemma in the sentence tho, look into that. 
-;;; TODO filter out empty lemmas
+(defn lemma [word pos]
+  "This takes the POS and so should return only a single lemma pair, and if it can't do that satisfactorally it returns nil."
+  (if (= 1 (count  (lemmas word pos)))
+    (first (lemmas word pos))
+    nil))
+
+;;; might want to get POS for the words so that the lemma is precise
+;;; include words in here that have no lemmas so that the sentence is indexed at least, losing tokens. 
+;;; this is a problem because the position of the words as I'm getting them. I can just filter what appears,
+;;; I shouldnt lose any data. 
 (defn lemmatize [sentence]
-  (let [words (get-words sentence)]
+  "Returns words mapped to all its possible lemmas."
+  (let [words (tokenize (clojure.string/lower-case sentence))]
     (loop [w words
            lemma-map {}]
       (if (empty? w)
         (into {} (filter (fn [e] (not (nil? (val e)))) lemma-map))
-        (recur (rest w) (conj lemma-map [(first  w) (lemmas (first  w))]))))))
+        (recur (rest w) (conj lemma-map [(first w) (lemmas (first w))]))))))
+
+
+(defn lemmatize-pos [sentence]
+  "The same as lemmatize, except it takes into accont the POS of each word for when it gets the lemma."
+  (let [words (pos-tag (tokenize (clojure.string/lower-case  sentence)))]
+    (loop [w words
+           lemma-map {}]
+      (if (empty? w)
+        (into {} (filter #(not (nil? (val %))) lemma-map))
+        (recur (rest w)
+               (conj lemma-map [(get (first w) 0) 
+                                (if-let [matching (get-regex-key apachePOS->wordnetPOS (get (first w) 1))]
+                                  (lemma (get (first w) 0) matching) 
+                                  nil)]))))))
 
 ;;; how to get synonym for a word with multiple entries? Build a map of synomyms for each type, {:noun [] :verb []}
 (defn synonyms-all [word]
@@ -66,7 +94,16 @@
 
 (defn synonyms-sentecne [])
 
-;;; treat word-net entries like "go_after" as "go after"
+(defn glosses
+  ([word] (map :gloss (wn word)))
+  ([word pos] (map :gloss (wn word pos))))
+
+
+(defn synsets [])
+
+;;; Search for all words matching the regex, or in which the regex is found. 
+
+;;; treat word-net entries like "go_after" as "go afterss"
 ;========================================================================================
 ;========================================================================================
 ;MARKOV GENERATION

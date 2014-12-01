@@ -172,7 +172,7 @@
             (reverse new)
             (reverse (conj new (string/join " " (remove empty? chunk))))) 
           (let [line (first seq)]
-            (let [start-match-pos (util/position starts (util/re-matches-some starts line))  ;improve naming
+            (let [start-match-pos (util/position (util/re-matches-some starts line) starts)  ;improve naming
                   matching-end (get ends start-match-pos)] 
               (cond (and start-match-pos  (empty? chunk))
                     (recur (rest seq) new (conj chunk line) matching-end)
